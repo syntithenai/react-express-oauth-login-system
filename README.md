@@ -6,7 +6,7 @@ Add the routes to your express application and use the LoginSystem component in 
 
 It integrates a complete oauth2 server implementation and uses that for local authentication and token generation so passwords are never given to the web clients.
 
-The delegated authentication provided by the oauth2 server is useful to allow third party web sites granular access to your application data.  For example, a public facing oauth server is required when developing apps for Google Home or Amazon Alexa that require user identification.
+The delegated authentication provided by the oauth2 server is useful to allow third party web sites granular access to your application data.  For example, a public facing oauth server is required when developing apps for Google Home or Amazon Alexa that require user identification and account linking.
 
 It also integrates passport.js to enable login using Google, Twitter, Facebook and Github. Passport includes solutions for many more authentication providers.
 
@@ -49,6 +49,8 @@ router.use('/api/login',require('react-express-oauth-login-system/routes/loginsy
 	- /src/App.js provides an example of integrating the login UI components into your React app.
 
 ```
+import LoginSystem from 'react-express-oauth-login-system'
+
 const routeProps = {
 		authServer: 'https://localhost/api/login',
 		// pass an updated user back to the application

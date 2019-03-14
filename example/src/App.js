@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import './App.css';
-import LoginSystem from './LoginSystem'
+
+import LoginSystem from 'react-express-oauth-login-system'
 
 import PropsRoute from './PropsRoute'
 

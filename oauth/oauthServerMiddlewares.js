@@ -20,11 +20,11 @@ const authenticateHandler = {
 module.exports.token = (req, res, next) => {
   const request = new Request(req);
   const response = new Response(res);
-console.log('token');  
-console.log(req); 
+//console.log('token');  
+//console.log(req); 
   oauth.token(request, response)
     .then((token) => {
-      console.log('generated token data', token);
+      //console.log('generated token data', token);
       res.set(response.headers);
       res.json(response.body);
     }).catch(err => next(err));
@@ -33,11 +33,11 @@ console.log(req);
 module.exports.authorize = (req, res, next) => {
   const request = new Request(req);
   const response = new Response(res);
-  console.log('authorize');
+//  console.log('authorize');
   oauth.authorize(request, response).then((authorizationCode) => {
     // TODO: Here i get a redirect response
-    console.log('authorize got code');
-    console.log(authorizationCode);
+   // console.log('authorize got code');
+    //console.log(authorizationCode);
     res.status(response.status).set(response.headers).end();
   }).catch(err => next(err));
 };
@@ -45,10 +45,10 @@ module.exports.authorize = (req, res, next) => {
 module.exports.authenticate = (req, res, next) => {
   const request = new Request(req);
   const response = new Response(res);
-  console.log('authenticate');  
+  //console.log('authenticate');  
   oauth.authenticate(request, response)
     .then((token) => {
-      console.log('token data', token)
+    //  console.log('token data', token)
       // Request is authorized.
       Object.assign(req, { user: token });
       next();

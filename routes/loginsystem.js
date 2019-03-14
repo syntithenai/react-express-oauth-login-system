@@ -242,7 +242,7 @@ passport.use(new GithubStrategy({
 				'client_id':config.clientId,
 				'client_secret':config.clientSecret
 			  };
-			  console.log(['RQUEST TOKEN',params])
+			  //console.log(['RQUEST TOKEN',params])
 			  return fetch(config.authServer+"/token", {
 				  method: 'POST',
 				  headers: {
@@ -253,7 +253,7 @@ passport.use(new GithubStrategy({
 				}).then(function(response) {
 					return response.json();
 				}).then(function(token) {
-					console.log(['request token got token',token]);
+					//console.log(['request token got token',token]);
 					//res.redirect(config.redirectOnLogin + '?code='+token.access_token);
 					//res.send({user:user,token:token});
 					if (token && token.access_token && token.access_token.length > 0) {
@@ -289,7 +289,7 @@ passport.use(new GithubStrategy({
 				}).then(function(response) {
 					return response.json();
 				}).then(function(token) {
-					console.log(['got token',token]);
+					//console.log(['got token',token]);
 					//res.redirect(config.redirectOnLogin + '?code='+token.access_token);
 					//res.send({user:user,token:token});
 					if (token.access_token && token.access_token.length > 0) {
@@ -338,7 +338,6 @@ passport.use(new GithubStrategy({
      });
 	
 	router.use('/twitter',function(req, res, next) {
-	  console.log('do twitter login NOW')
 		passport.authenticate('twitter', { scope: ['email'] })(req,res,next);
 	}) 
 	router.get('/twittercallback', 
@@ -603,7 +602,7 @@ passport.use(new GithubStrategy({
 	 * SAVE USER
 	 ********************/
 	router.post('/saveuser', oauthMiddlewares.authenticate, function(req, res) {
-		console.log(['SAVE USER',req.body]);
+		//console.log(['SAVE USER',req.body]);
 		if (req.body._id && req.body._id.length > 0) {
 			if (req.body.password && req.body.password.length > 0 && req.body.password2 && req.body.password2.length > 0 && req.body.password2 != req.body.password)  {
 				res.send({warning_message:'Passwords do not match'});

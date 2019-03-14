@@ -27,8 +27,5 @@ const oauthMiddlewares = require('./oauth/oauthServerMiddlewares');
 const database = require('./oauth/database');
 database.connect();
 
-function authenticate() {
-	return oauthMiddlewares.authenticate
-}
 
-module.exports = authenticate;
+module.exports = oauthMiddlewares.authenticate;

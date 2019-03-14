@@ -16,6 +16,10 @@ var flash = require('connect-flash');
 
 var authenticate = require('./authenticate');
 
+//const oauthMiddlewares = require('./oauth/oauthServerMiddlewares');
+//const database = require('./oauth/database');
+//database.connect();
+
 
 //app.use(logger('dev'));
 app.use(bodyParser.json());
@@ -28,6 +32,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 var router = express.Router();
+let config = require('./config');
 
 // ENDPOINTS
 // login system
@@ -36,7 +41,8 @@ router.use('/api/login',require('./routes/loginsystem.js'));
 //router.use('/api/oauth',require('./routes/oauth.js'));
 
 // An api endpoint that returns a short list of items
-router.get('/api/getList',authenticate, (req,res) => {
+router.get('/api/getlist',authenticate, (req,res) => {
+	console.log('getliste')
 	var list = ["item1", "item2", "item3"];
 	res.json([{items:list,user:res.user}]);
 	console.log('Sent list of items');
@@ -45,7 +51,7 @@ router.get('/api/getList',authenticate, (req,res) => {
 
 app.use(router);
 // Development, proxy to local create-react-app
-app.use('/', proxy({ target: 'http://localhost:3000' }))
+app.use('/', proxy({ target: config.reactServer }))
 // production - Serve the static files from the React app
 //app.use(express.static(path.join(__dirname, 'client/build')));
 

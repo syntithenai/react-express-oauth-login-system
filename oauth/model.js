@@ -23,7 +23,7 @@ function getAccessToken(accessToken) {
 function getClient(clientId, clientSecret) {
   //console.log('getClient', clientId, clientSecret);
   const query = { clientId };
-  console.log(query);
+  //console.log(query);
   if (clientSecret) {
     query.clientSecret = clientSecret;
   }

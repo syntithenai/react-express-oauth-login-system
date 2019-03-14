@@ -2,6 +2,13 @@
   "name": "react-express-oauth-login-system",
   "version": "0.0.1",
   "description": "Using node-oauth2-server with a mongodb backend. Includes express routes and react components to support signup/login/forgot password",
+  "main": "dist/index.js",
+  "module": "dist/index.es.js",
+  "jsnext:main": "dist/index.es.js",
+  "engines": {
+    "node": ">=8",
+    "npm": ">=5"
+  },
   "scripts": {
     "lstart": "nodemon index.js | react-scripts start",
     "start": "react-scripts start",

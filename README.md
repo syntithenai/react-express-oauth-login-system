@@ -30,7 +30,10 @@ git clone https://github.com/syntithenai/react-express-oauth-login-system.git
 
 ```
 cd react-express-oauth-login-system/
+npm i
 cd example
+cp config.js.sample config.js
+# nano config.js 
 npm i
 npm start
 ```

@@ -10,26 +10,28 @@ module.exports = {
         user: 'USER@gmail.com',
         pass: 'userpassword'
       }
-    }
+    },
 
    // API KEYS FOR EXTERNAL AUTHENTICATION
    // OPTIONAL
-   googleClientId:'', // blahblah.apps.googleusercontent.com',
-   googleClientSecret:'',
-   twitterConsumerKey:'',
-   twitterConsumerSecret:'',
-   facebookAppId: '',
-   facebookAppSecret: '',
-   instagramClientId: '',
-   instagramClientSecret: '',
-   githubClientId: '',
-   githubClientSecret: '',
+   googleClientId:'aaa', // blahblah.apps.googleusercontent.com',
+   googleClientSecret:'aaa',
+   twitterConsumerKey:'aaa',
+   twitterConsumerSecret:'aaa',
+   facebookAppId: 'aaa',
+   facebookAppSecret: 'aaa',
+   instagramClientId: 'aaa',
+   instagramClientSecret: 'aaa',
+   githubClientId: 'aaa',
+   githubClientSecret: 'aaa',
 
 
-   // USED for generating email links for confirm registration/recover password
    // REQUIRED (default ok for demo)
+   // USED for generating email links for confirm registration/recover password
    authServer: "https://localhost/api/login",
-
+   // USED to proxy react app into main server
+   reactServer: "http://localhost:3000",
+   
    database: 'browserexample',
    databaseConnection: 'mongodb://localhost:27017/',   
 

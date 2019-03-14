@@ -56,8 +56,6 @@ class App extends Component {
 	};
 	const routeProps = {
 		authServer: 'https://localhost/api/login',
-		oAuthClientId:'test',
-		oAuthClientPassword:'testpass',
 		setUser: this.setUser, 
 		onLogin: this.onLogin,
 		onLogout: this.onLogout,

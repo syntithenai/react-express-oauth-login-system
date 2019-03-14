@@ -20,7 +20,7 @@ In the box
 
 To see the suite in action
 
-```git clone```
+```git clone https://github.com/syntithenai/react-express-oauth-login-system.git```
 
 Copy config.sample.js to config.js and edit to update any configuration settings including email delivery and external api keys.
 
@@ -34,41 +34,80 @@ npm start
 Open https://localhost/ 
 
 
+## Integration into your application
 
 
-
-
-
-
-## Protecting web API's
-
-```npm install passport-http-bearer```
-Configuration
-
+1. Add the provided routes to your express server.
+	- /index.js provides an example of integrating the login system routes.
+	
 ```
-passport.use(new BearerStrategy(
-  function(token, done) {
-    User.findOne({ token: token }, function (err, user) {
-      if (err) { return done(err); }
-      if (!user) { return done(null, false); }
-      return done(null, user, { scope: 'read' });
-    });
-  }
-));
-```login/login
-
-Protect Endpoints
-```
-app.get('/api/me',
-  passport.authenticate('bearer', { session: false }),
-  function(req, res) {
-    res.json(req.user);
-  });
+router.use('/api/login',require('react-express-oauth-login-system/routes/loginsystem.js'));
 ```
 
+2. Use the LoginSystem component on the root client route (/)  in your React application
+	- React Router is required
+	- /src/App.js provides an example of integrating the login UI components into your React app.
+
+```
+const routeProps = {
+		authServer: 'https://localhost/api/login',
+		// pass an updated user back to the application
+		setUser: this.setUser, 
+		// pass an updated user that just logged in (so perhaps redirect)
+		onLogin: this.onLogin,
+		onLogout: this.onLogout,
+		// hook for waiting overlay
+		startWaiting: this.startWaiting,
+		stopWaiting: this.stopWaiting,
+		// enable external authentication services buttons
+		loginButtons: ['google','twitter','facebook','github']
+	}
+	return (
+      <div className="App">
+        {this.state.waiting && <div className="overlay" onClick={this.stopWaiting} ><img alt="loading" src='/loading.gif' /> </div>}
+        <header className="App-header">
+           <Router><div style={{width:'70%'}}>
+           <Route  exact={true} path='/' component={HomePage} />
+		   <PropsRoute path='/' component={LoginSystem}  {...routeProps}  />
+        </div></Router>
+        </header>
+      </div>
+    );
+
+```
+
+3. Protecting your web API's
+
+All requests to your secured API endpoints must include an Authorization header including a bearer token
+
+```
+		fetch(that.props.authServer+'/saveuser', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer '+user.token.access_token
+          },
+          body: JSON.stringify(user)
+        })
+```
+
+To secure an endpoint, include the authenticate function and use it as express middleware.
+
+```
+var authenticate = require('react-express-oauth-login-system/authenticate.js')
+
+// An api endpoint that returns a short list of items
+router.get('/api/getList',authenticate, (req,res) => {
+	var list = ["item1", "item2", "item3"];
+	// note that res.user is available after authentication
+	res.json([{items:list,user:res.user}]);
+	console.log('Sent list of items');
+});
 
 
-## Login With 
+```
+
+## Login With External Services
 
 To enable login using external services you will need a key and secret from each of the services. Obtaining these keys may include filling a number of forms to justify your use of their API.
 

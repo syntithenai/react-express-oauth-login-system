@@ -60,7 +60,11 @@
     "rollup-plugin-url": "^1.4.0"
   },
   "files": [
-    "dist"
+    "dist",
+    "src",
+    "routes",
+    "oauth",
+    "authenticate.js"
   ],
   "dependencies": {
     "bluebird": "^3.5.0",

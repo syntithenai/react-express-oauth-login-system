@@ -406,6 +406,8 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 												res.send({message:'Avatar name is already taken, try something different.'});
 											} else {
 												item.signup_token =  generateToken();
+												item.signup_token_timestamp =  new Date().getTime();
+												
 												item.tmp_password=item.password;
 												item.password='';
 												item.password2='';
@@ -439,19 +441,26 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 		    database.User.findOne({ signup_token:params.code.trim()})
 			.then(function(user)  {
 					if (user != null) {
-						var userId = user._id;
-					  user.password = user.tmp_password;
-					  user.signup_token = undefined;
-					  user.tmp_password = undefined;
-					  user.save().then(function() {
-						  requestToken(user).then(function(user) {
-							  res.redirect('/login' + '?code='+user.token.refresh_token);
+						console.log(['DO CONFIRM',parseInt(user.signup_token_timestamp,10), new Date().getTime() - parseInt(user.recover_password_token_timestamp,10)])
+						if (new Date().getTime() - parseInt(user.signup_token_timestamp,10) < 600000) {
+							
+							var userId = user._id;
+						  user.password = user.tmp_password;
+						  user.signup_token = undefined;
+						  user.signup_token_timestamp =  undefined;
+						  user.tmp_password = undefined;
+						  user.save().then(function() {
+							  requestToken(user).then(function(user) {
+								  res.redirect('/login' + '?code='+user.token.refresh_token);
+							  }).catch(function(e) {
+								  res.send({message:'Error requesting token in signup confirmation'});
+							  });
 						  }).catch(function(e) {
-							  res.send({message:'Error requesting token in signup confirmation'});
-						  });
-					  }).catch(function(e) {
-							  res.send({message:'Error saving user in signup confirmation'});
-						  });;
+								  res.send({message:'Error saving user in signup confirmation'});
+							  });;
+					   } else {
+						   res.send('token timeout. restart request')
+					   }
 					} else {
 						res.send({message:'No matching registration'} );
 					}
@@ -507,19 +516,20 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 			} else if (req.body.password2 != req.body.password)  {
 				res.send({warning_message:'Passwords do not match'});
 			} else {
-				database.User.findOne({username:req.body.email}, function(err, item) {
+				database.User.findOne({username:req.body.email}, function(err, user) {
 				  if (err) {
 					  res.send({warning_message:err});
-				  } else if (item!=null) {
-					  item.tmp_password = req.body.password;
-					  item.recover_password_token=req.body.code;
+				  } else if (user!=null) {
+					  user.tmp_password = req.body.password;
+					  user.recover_password_token=generateToken(); //req.body.code;
+					  user.recover_password_token_timestamp =  new Date().getTime();
 					  // no update email address, item.username = req.body.username;
-					  database.User.update({'_id': ObjectId(item._id)},{$set:item}).then(function(xres) {
-						   var link = config.authServer + '/dorecover?code='+item.recover_password_token;
+					  user.save().then(function(xres) {
+						   var link = config.authServer + '/dorecover?code='+user.recover_password_token;
 						   var mailTemplate = config.recoveryEmailTemplate && config.recoveryEmailTemplate.length > 0 ? config.recoveryEmailTemplate : `<div>Hi {{name}}! <br/>
 
 	To confirm your password recovery of your account , please click the link below.<br/>
-
+recover_password_token
 	<a href="{{link}}" >Confirm your password update</a><br/>
 
 	If you did not recently request a password recovery for your account, please ignore this email.<br/><br/>
@@ -527,12 +537,12 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 									  </div>`;
 						   
 						   
-						   var mailTemplate =  mustache.render(mailTemplate,{link:link,name:item.name});
+						   var mailTemplate =  mustache.render(mailTemplate,{link:link,name:user.name});
 						   utils.sendMail(config.mailFrom,req.body.email,"Update your password ",
 									 mailTemplate
 								  );  
-						  item.warning_message="Sent recovery email";
-						  res.send(item);
+						  user.warning_message="Sent recovery email";
+						  res.send({warning_message: "Sent recovery email"});
 					  });  
 					  
 				  } else {
@@ -552,17 +562,23 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 		 	  database.User.findOne({ recover_password_token:params.code})
 				.then(function(user)  {
 					if (user != null) {
-					  var userId = user._id;
-					  user.password = user.tmp_password;
-					  user.recover_password_token = undefined;
-					  user.tmp_password = undefined;
-					  requestToken(user).then(function(user) {
-							user.save().then(function() {
-							   res.redirect('/login' + '?code='+user.token.access_token);
-						  }).catch(function(e) {
-							  res.send('failed ' );
-						  });
-					  });	
+					  if (new Date().getTime() - parseInt(user.recover_password_token_timestamp,10) < 600000) {
+						  var userId = user._id;
+						  requestToken(user).then(function(user) {
+							  user.password = user.tmp_password;
+							  user.recover_password_token = undefined;
+							  user.recover_password_token_timestamp = undefined;
+							  
+							  user.tmp_password = undefined;
+							  user.save().then(function() {
+								   res.redirect('/login' + '?code='+user.token.refresh_token);
+							  }).catch(function(e) {
+								  res.send('failed ' );
+							  });
+						  });	
+					   } else {
+						   	  res.send('token timeout restart request' );
+					   }
 					} else {
 						res.send('no matching registration' );
 					}

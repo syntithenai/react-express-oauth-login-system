@@ -20,13 +20,16 @@ In the box
 
 To see the suite in action
 
-```git clone https://github.com/syntithenai/react-express-oauth-login-system.git```
+```
+git clone https://github.com/syntithenai/react-express-oauth-login-system.git
+```
 
-Copy config.sample.js to config.js and edit to update any configuration settings including email delivery and external api keys.
+- Copy example/config.sample.js to example/config.js and edit to update any configuration settings including email delivery and external api keys.
+- Edit example/src/App.js and update the properties to disable any unused external authentication buttons.
 
-Edit example/src/App.js and update the properties to disable any unused external authentication buttons.
 
 ```
+cd react-express-oauth-login-system/
 cd example
 npm i
 npm start
@@ -47,7 +50,7 @@ npm i react-express-oauth-login-system
 	- /index.js provides an example of integrating the login system routes.
 	
 ```
-router.use('/api/login',require('react-express-oauth-login-system/routes/loginsystem.js')(config));
+router.use('/api/login',require('react-express-oauth-login-system/routes/loginsystem.js'));
 ```
 
 2. Use the LoginSystem component on the root client route (/)  in your React application
@@ -80,10 +83,10 @@ All requests to your secured API endpoints must include an Authorization header 
 	})
 ```
 
-To secure an endpoint, include the authenticate function and use it as express middleware.
+To secure an endpoint, include the authenticate module and use it as express middleware.
 
 ```
-var authenticate = require('react-express-oauth-login-system/authenticate.js')(config)
+var authenticate = require('react-express-oauth-login-system/authenticate.js')
 
 // An api endpoint that returns a short list of items
 router.get('/api/getList',authenticate, (req,res) => {
@@ -108,8 +111,11 @@ https://github.com/settings/applications
 
 https://developer.twitter.com/
 
-https://www.instagram.com/developer/
-
 https://developers.facebook.com/apps/
 
 https://console.developers.google.com/
+
+
+
+
+https://www.instagram.com/developer/ [DIABLED because it is not possible to ask for email address of logged in user as id :(]

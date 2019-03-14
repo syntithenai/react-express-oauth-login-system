@@ -7,7 +7,7 @@ export default  class Login extends Component {
     
     constructor(props) {
         super(props);
-        this.state={signin_username:'aa@syntithenai.com',signin_password:'aaa',rememberme:false};
+        this.state={signin_username:'',signin_password:'',rememberme:false};
         this.change = this.change.bind(this);
     };
          

@@ -110,6 +110,7 @@ export default  class LoginSystem extends Component {
     };
     
     submitSignIn(user,pass) {
+		console.log('SUBMITSIGNIN')
         var that=this;
         this.submitWarning('');
         if (this.props.startWaiting) this.props.startWaiting();
@@ -344,7 +345,7 @@ export default  class LoginSystem extends Component {
 			return <div className='pending-auth-request' ><Link to='/login/auth' className='btn btn-success'  >Pending Authentication Request</Link></div>
 		} else {
 			return (<div>
-                <Route path='/login' component={DefaultRedirect} />
+		        <Route path='/login' component={DefaultRedirect} />
                 <PropsRoute {...callBackFunctions} path='/login/profile' component={Profile}   />
                 <PropsRoute {...callBackFunctions} path='/login/login' component={Login} />
                 <PropsRoute {...callBackFunctions} path='/login/register' component={Register} />

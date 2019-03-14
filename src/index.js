@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
-import LoginSystem from './LoginSystem'
+import React, { Component } from 'react';
+import LoginSystem from './LoginSystem';
 
-export default class LoginSystem
+export default LoginSystem;

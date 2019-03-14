@@ -41,7 +41,6 @@ export default  class Login extends Component {
 		
            return  <form className="form-signin" onSubmit={(e) => {e.preventDefault();  this.props.submitSignIn(this.state.signin_username,this.state.signin_password); return false;}}>
          
-        
          <Link to="/login/forgot" style={{clear:'both',display:'inline'}} ><button style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Forgot Password</button></Link>
          <Link to="/login/register" style={{clear:'both',display:'inline'}} ><button style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Register</button></Link>
           <h1 className="h3 mb-3 font-weight-normal" style={{textAlign:'left'}}>Sign in</h1>

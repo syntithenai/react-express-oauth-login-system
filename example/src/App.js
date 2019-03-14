@@ -3,10 +3,8 @@ import './App.css';
 
 import LoginSystem from 'react-express-oauth-login-system'
 
-import PropsRoute from './PropsRoute'
-
 import {BrowserRouter as Router,Route} from 'react-router-dom'
-
+import PropsRoute from './PropsRoute'
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -26,15 +24,7 @@ class App extends Component {
 	  this.stopWaiting = this.stopWaiting.bind(this);
 	  this.getList = this.getList.bind(this);
 	  
-	  this.routeProps = {
-		authServer: 'https://localhost/api/login',
-		setUser: this.setUser, 
-		onLogin: this.onLogin,
-		onLogout: this.onLogout,
-		startWaiting: this.startWaiting,
-		stopWaiting: this.stopWaiting,
-		loginButtons: ['google','twitter','facebook','github']
-	  }
+	  
   }	
 	
   setUser(user) {
@@ -90,11 +80,10 @@ class App extends Component {
       <div className="App">
         {this.state.waiting && <div className="overlay" onClick={this.stopWaiting} ><img alt="loading" src='/loading.gif' /> </div>}
         <header className="App-header">
-           {<button onClick={this.getList} >GET LIST</button>}
-           {JSON.stringify(this.state.list)}
+           {this.state.user && this.state.user.token && <div><button onClick={this.getList} >GET LIST</button> {JSON.stringify(this.state.list)}</div>}
            <Router><div style={{width:'70%'}}>
            <Route  exact={true} path='/' component={RedirectToLogin} />
-		   <PropsRoute path='/' component={LoginSystem}  {...this.routeProps}  />
+		   <PropsRoute path='/' component={LoginSystem}  authServer={'https://localhost/api/login'} setUser={this.setUser} onLogin={this.onLogin} onLogout={this.onLogout} startWaiting={this.startWaiting} stopWaiting={this.stopWaiting} loginButtons={['google','twitter','facebook','github']} />
         </div></Router>
         </header>
       </div>

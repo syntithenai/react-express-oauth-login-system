@@ -22,10 +22,10 @@
     //res.json(req.user);
   //});
 //```
-
+let config = global.gConfig;
+	
 const oauthMiddlewares = require('./oauth/oauthServerMiddlewares');
 const database = require('./oauth/database');
-database.connect();
+database.connect(config.databaseConnection+config.database);
 
-
-module.exports = oauthMiddlewares.authenticate;
+module.exports =  oauthMiddlewares.authenticate;

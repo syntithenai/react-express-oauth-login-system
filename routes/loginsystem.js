@@ -1,7 +1,4 @@
 var express = require('express');
-var router = express.Router();
-var utils = require("./utils")
-var config = require("../config")
 var fetch = require('node-fetch');
 const mustache = require('mustache');
 const crypto = require("crypto"); 
@@ -16,183 +13,185 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 
 
 
+	let config = global.gConfig;
+	var router = express.Router();
 
-
-/**********************************
- * INITIALISE MONGOOSE AND RAW MONGODB CONNECTIONS
- *********************************/
-var ObjectId = require('mongodb').ObjectID;
-
-if (!config.userFields || config.userFields.length === 0) config.userFields=['name','avatar','username','token','access_token','access_token_created','password','tmp_password']
-//const User = require('./User');
-
-//mongoose.connect(config.databaseConnection + config.database,{useMongoClient: true}).then(() => {
-	////console.log('Mongoose Connected');
-//}).catch((err) => {
-	//console.log(err);
-//});
-
-
-const database = require('../oauth/database');
-database.connect(config.databaseConnection+config.database);
-
-// INITIALSE OAUTH SERVER - create client if not exists
-database.OAuthClient.findOne({clientId: config.clientId}).then(function(client) {
-	let clientFields = 	{clientId: config.clientId, clientSecret:config.clientSecret,name:config.clientName,website_url:config.clientWebsite,privacy_url:config.clientPrivacyPage,redirectUris:[],image:config.clientImage};
-	if (client!= null) {
-		// OK
-		database.OAuthClient.update({clientId:config.clientId},clientFields);
-	} else {
-		let client = new database.OAuthClient(clientFields);
-		client.save().then(function(r) {
-		});
-	}
-}).catch(function(e) {
-	console.log(e);
-});
-global.Promise = bluebird;
-
-
-router.use(bodyParser.json());
-router.use(bodyParser.urlencoded({ extended: false }));
-
-router.all('/token', oauthMiddlewares.token);
-router.post('/authorize', oauthMiddlewares.authorize);
-router.get('/authorize',function(req,res) {
-	//console.log(['AUTHORIZE',req]);
 	
-})
-//router.post('/authorize', oauthMiddlewares.authorize);
-//router.get('/secure', oauthMiddlewares.authenticate, (req, res) => {
-//res.json({ message: 'Secure data' });
-//});
+	var utils = require("./utils")
+	/**********************************
+	 * INITIALISE MONGOOSE AND RAW MONGODB CONNECTIONS
+	 *********************************/
+	var ObjectId = require('mongodb').ObjectID;
+
+	if (!config.userFields || config.userFields.length === 0) config.userFields=['name','avatar','username','token','access_token','access_token_created','password','tmp_password']
+	//const User F= require('./User');
+
+	mongoose.connect(config.databaseConnection + config.database,{useMongoClient: true}).then(() => {
+		console.log('Mongoose Connected');
+	}).catch((err) => {
+		console.log(err);
+	});
 
 
-
-/********************
- * CONFIGURE PASSPORT
- ********************/
-
-var passport = require('passport')
-
-passport.serializeUser(function(user, done) {
-  done(null, user);
-});
-
-passport.deserializeUser(function(user, done) {
-  done(null, user);
-});
-
-
-var LocalStrategy = require('passport-local').Strategy;
-
-// username/password
-passport.use(new LocalStrategy(
-  function(username, password, done) {
-    database.User.findOne({ username: username,password:password }, function (err, user) {
-      if (err) { return done(err); }
-      if (!user) {
-        return done(null, false, { message: 'Incorrect login details' });
-      }
-     // console.log('LOGIN',user.toObject());
-      return done(null, user);
-    });
-  }
-));
-
-
-var GoogleStrategy = require('passport-google-oauth20').Strategy;
-passport.use(new GoogleStrategy({
-    clientID: config.googleClientId,
-    clientSecret: config.googleClientSecret,
-    callbackURL: config.authServer + '/googlecallback'
-  },
-  function(accessToken, refreshToken, profile, cb) {
-	if (profile && profile.emails && profile.emails.length > 0) {
-			let email = profile.emails[0].value
-			findOrCreateUser(profile.displayName,email,cb);
+	const database = require('../oauth/database');
+	
+	// INITIALSE OAUTH SERVER - create client if not exists
+	database.OAuthClient.findOne({clientId: config.clientId}).then(function(client) {
+		let clientFields = 	{clientId: config.clientId, clientSecret:config.clientSecret,name:config.clientName,website_url:config.clientWebsite,privacy_url:config.clientPrivacyPage,redirectUris:[],image:config.clientImage};
+		if (client!= null) {
+			// OK
+			database.OAuthClient.update({clientId:config.clientId},clientFields);
 		} else {
-			cb('google did not provide an email',null);
+			let client = new database.OAuthClient(clientFields);
+			client.save().then(function(r) {
+			});
 		}
-	}
-));
+	}).catch(function(e) {
+		console.log(e);
+	});
+	global.Promise = bluebird;
+
+
+	router.use(bodyParser.json());
+	router.use(bodyParser.urlencoded({ extended: false }));
+
+	router.all('/token', oauthMiddlewares.token);
+	router.post('/authorize', oauthMiddlewares.authorize);
+	router.get('/authorize',function(req,res) {
+		//console.log(['AUTHORIZE',req]);
+		
+	})
+	//router.post('/authorize', oauthMiddlewares.authorize);
+	//router.get('/secure', oauthMiddlewares.authenticate, (req, res) => {
+	//res.json({ message: 'Secure data' });
+	//});
 
 
 
-var TwitterStrategy = require('passport-twitter').Strategy;
+	/********************
+	 * CONFIGURE PASSPORT
+	 ********************/
 
-passport.use(new TwitterStrategy({
-    consumerKey: config.twitterConsumerKey,
-    consumerSecret: config.twitterConsumerSecret,
-    callbackURL: config.authServer + '/twittercallback',
-    userProfileURL: "https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true"
-  },
-  function(token, tokenSecret, profile, cb) {
-    //	console.log(['twitter LOGIN STRAT',token, tokenSecret, profile,profile.emails,profile.entities,profile.status,profile.photos]);
+	var passport = require('passport')
+
+	passport.serializeUser(function(user, done) {
+	  done(null, user);
+	});
+
+	passport.deserializeUser(function(user, done) {
+	  done(null, user);
+	});
+
+
+	var LocalStrategy = require('passport-local').Strategy;
+
+	// username/password
+	passport.use(new LocalStrategy(
+	  function(username, password, done) {
+		database.User.findOne({ username: username,password:password }, function (err, user) {
+		  if (err) { return done(err); }
+		  if (!user) {
+			return done(null, false, { message: 'Incorrect login details' });
+		  }
+		 // console.log('LOGIN',user.toObject());
+		  return done(null, user);
+		});
+	  }
+	));
+
+
+	var GoogleStrategy = require('passport-google-oauth20').Strategy;
+	passport.use(new GoogleStrategy({
+		clientID: config.googleClientId,
+		clientSecret: config.googleClientSecret,
+		callbackURL: config.authServer + '/googlecallback'
+	  },
+	  function(accessToken, refreshToken, profile, cb) {
+		if (profile && profile.emails && profile.emails.length > 0) {
+				let email = profile.emails[0].value
+				findOrCreateUser(profile.displayName,email,cb);
+			} else {
+				cb('google did not provide an email',null);
+			}
+		}
+	));
+
+
+
+	var TwitterStrategy = require('passport-twitter').Strategy;
+
+	passport.use(new TwitterStrategy({
+		consumerKey: config.twitterConsumerKey,
+		consumerSecret: config.twitterConsumerSecret,
+		callbackURL: config.authServer + '/twittercallback',
+		userProfileURL: "https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true"
+	  },
+	  function(token, tokenSecret, profile, cb) {
+		//	console.log(['twitter LOGIN STRAT',token, tokenSecret, profile,profile.emails,profile.entities,profile.status,profile.photos]);
+			if (profile && profile.emails && profile.emails.length > 0) {
+				let email = profile.emails[0].value
+				findOrCreateUser(profile.displayName,email,cb);
+			} else {
+				cb('twitter did not provide an email',null);
+			}
+	  }
+	));
+
+
+	var FacebookStrategy = require('passport-facebook').Strategy;
+
+	passport.use(new FacebookStrategy({
+		clientID: config.facebookAppId,
+		clientSecret: config.facebookAppSecret,
+		callbackURL: config.authServer + '/facebookcallback',
+		profileFields: ['id', 'displayName', 'photos', 'email']
+	  },
+	  function(token, tokenSecret, profile, cb) {
+			//console.log(['FacebookStrategy LOGIN STRAT',token, tokenSecret, profile,profile.emails,profile.entities,profile.status,profile.photos]);
+			if (profile && profile.emails && profile.emails.length > 0) {
+				let email = profile.emails[0].value
+				findOrCreateUser(profile.displayName,email,cb);
+			} else {
+				cb('FacebookStrategy did not provide an email',null);
+			}
+	  }
+	));
+	// NO ACCESS TO EMAIL ADDRESS
+	//var InstagramStrategy = require('passport-instagram').Strategy;
+
+	//passport.use(new InstagramStrategy({
+		//clientID: config.instagramClientId,
+		//clientSecret: config.instagramClientSecret,
+		//callbackURL: config.authServer+"/instagramcallback"
+	  //},
+	  //function(accessToken, refreshToken, profile, cb) {
+		//console.log([profile,profile.emails]);
+		//if (profile && profile.emails && profile.emails.length > 0) {
+			//let email = profile.emails[0].value
+			//findOrCreateUser(profile.displayName,email,cb);
+		//} else {
+			//cb('instagram did not provide an email',null);
+		//}
+	  //}
+	//));
+
+	var GithubStrategy = require('passport-github').Strategy;
+
+	passport.use(new GithubStrategy({
+		clientID: config.githubClientId,
+		clientSecret: config.githubClientSecret,
+		callbackURL: config.authServer+"/githubcallback",
+	  },
+	  function(accessToken, refreshToken, profile, cb) {
+		//  console.log([profile,profile.emails]);
 		if (profile && profile.emails && profile.emails.length > 0) {
 			let email = profile.emails[0].value
-			findOrCreateUser(profile.displayName,email,cb);
+			findOrCreateUser(profile.displayName ? profile.displayName : profile.username,email,cb);
 		} else {
-			cb('twitter did not provide an email',null);
+			cb('github did not provide an email',null);
 		}
-  }
-));
-
-
-var FacebookStrategy = require('passport-facebook').Strategy;
-
-passport.use(new FacebookStrategy({
-    clientID: config.facebookAppId,
-    clientSecret: config.facebookAppSecret,
-    callbackURL: config.authServer + '/facebookcallback',
-    profileFields: ['id', 'displayName', 'photos', 'email']
-  },
-  function(token, tokenSecret, profile, cb) {
-    	//console.log(['FacebookStrategy LOGIN STRAT',token, tokenSecret, profile,profile.emails,profile.entities,profile.status,profile.photos]);
-		if (profile && profile.emails && profile.emails.length > 0) {
-			let email = profile.emails[0].value
-			findOrCreateUser(profile.displayName,email,cb);
-		} else {
-			cb('FacebookStrategy did not provide an email',null);
-		}
-  }
-));
-// NO ACCESS TO EMAIL ADDRESS
-//var InstagramStrategy = require('passport-instagram').Strategy;
-
-//passport.use(new InstagramStrategy({
-    //clientID: config.instagramClientId,
-    //clientSecret: config.instagramClientSecret,
-    //callbackURL: config.authServer+"/instagramcallback"
-  //},
-  //function(accessToken, refreshToken, profile, cb) {
-    //console.log([profile,profile.emails]);
-    //if (profile && profile.emails && profile.emails.length > 0) {
-		//let email = profile.emails[0].value
-		//findOrCreateUser(profile.displayName,email,cb);
-	//} else {
-		//cb('instagram did not provide an email',null);
-	//}
-  //}
-//));
-
-var GithubStrategy = require('passport-github').Strategy;
-
-passport.use(new GithubStrategy({
-    clientID: config.githubClientId,
-    clientSecret: config.githubClientSecret,
-    callbackURL: config.authServer+"/githubcallback",
-  },
-  function(accessToken, refreshToken, profile, cb) {
-	//  console.log([profile,profile.emails]);
-    if (profile && profile.emails && profile.emails.length > 0) {
-		let email = profile.emails[0].value
-		findOrCreateUser(profile.displayName ? profile.displayName : profile.username,email,cb);
-	} else {
-		cb('github did not provide an email',null);
-	}
-  }
-));
+	  }
+	));
 
 
 	function findOrCreateUser(name,email,cb) {
@@ -436,30 +435,34 @@ passport.use(new GithubStrategy({
 	 ********************/
 	router.get('/doconfirm',function(req,res) {
 		let params = req.query;
-		      database.User.findOne({ signup_token:params.code.trim()})
-				.then(function(user)  {
-						if (user != null) {
-	    					var userId = user._id;
-						  user.password = user.tmp_password;
-						  user.signup_token = undefined;
-						  user.tmp_password = undefined;
-						  user.save().then(function() {
-							  requestToken(user).then(function(user) {
-								  res.redirect('/login' + '?code='+user.token.refresh_token);
-							  }).catch(function(e) {
-								  res.send({message:'Error requesting token in signup confirmation'});
-							  });
+		if (params && params.code && params.code.length > 0) {
+		    database.User.findOne({ signup_token:params.code.trim()})
+			.then(function(user)  {
+					if (user != null) {
+						var userId = user._id;
+					  user.password = user.tmp_password;
+					  user.signup_token = undefined;
+					  user.tmp_password = undefined;
+					  user.save().then(function() {
+						  requestToken(user).then(function(user) {
+							  res.redirect('/login' + '?code='+user.token.refresh_token);
 						  }).catch(function(e) {
-								  res.send({message:'Error saving user in signup confirmation'});
-							  });;
-						} else {
-							res.send({message:'No matching registration'} );
-						}
-				   // }
-				}).catch(function(e) {
-					console.log(['failed',e]);
-					res.send({message:'failed'});
-				});
+							  res.send({message:'Error requesting token in signup confirmation'});
+						  });
+					  }).catch(function(e) {
+							  res.send({message:'Error saving user in signup confirmation'});
+						  });;
+					} else {
+						res.send({message:'No matching registration'} );
+					}
+			   // }
+			}).catch(function(e) {
+				console.log(['failed',e]);
+				res.send({message:'failed'});
+			});
+		} else {
+				res.send({message:'missing code	'})
+		}
 	})
 
 
@@ -467,12 +470,16 @@ passport.use(new GithubStrategy({
 	 * SIGN IN
 	 ********************/
 	router.post('/signin', function(req, res) {
-		let params = req.query;		
+		//console.log('signin')
+		//console.log(req.body);
 		if (req.body.username && req.body.username.length > 0 && req.body.password && req.body.password.length>0) {
+				//console.log('really signin')
 				database.User.findOne({username:req.body.username.trim(),password:req.body.password.trim()})
 				.then(function(user)  {
+					//console.log('signin user',user)
 						if (user != null) {
 	    				  requestToken(user).then(function(user) {
+							//console.log('signin token',user.token)
 							    let token = user.token;
 							     res.send(Object.assign(sanitizeUser(user.toObject()),{token:token}))
 						  });
@@ -480,6 +487,7 @@ passport.use(new GithubStrategy({
 							res.send({message:'No matching user'} );
 						}
 				}).catch(function(e) {
+					console.log(e);
 					res.send({message:'failed'});
 				});		
 		} else {
@@ -599,9 +607,9 @@ passport.use(new GithubStrategy({
 	})
 
 	/********************
-	 * SAVE USER
+	 * SAVE USER, oauthMiddlewares.authenticate
 	 ********************/
-	router.post('/saveuser', oauthMiddlewares.authenticate, function(req, res) {
+	router.use('/saveuser',oauthMiddlewares.authenticate, function(req, res) {
 		//console.log(['SAVE USER',req.body]);
 		if (req.body._id && req.body._id.length > 0) {
 			if (req.body.password && req.body.password.length > 0 && req.body.password2 && req.body.password2.length > 0 && req.body.password2 != req.body.password)  {
@@ -712,4 +720,5 @@ passport.use(new GithubStrategy({
 		
 	}
 
-module.exports = router;
+	module.exports =  router;
+

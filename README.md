@@ -24,9 +24,10 @@ To see the suite in action
 
 Copy config.sample.js to config.js and edit to update any configuration settings including email delivery and external api keys.
 
-Edit src/App.js and update the properties to disable any unused external authentication buttons.
+Edit example/src/App.js and update the properties to disable any unused external authentication buttons.
 
 ```
+cd example
 npm i
 npm start
 ```
@@ -36,12 +37,17 @@ Open https://localhost/
 
 ## Integration into your application
 
+0. Install the package from npm
+
+```
+npm i react-express-oauth-login-system
+```
 
 1. Add the provided routes to your express server.
 	- /index.js provides an example of integrating the login system routes.
 	
 ```
-router.use('/api/login',require('react-express-oauth-login-system/routes/loginsystem.js'));
+router.use('/api/login',require('react-express-oauth-login-system/routes/loginsystem.js')(config));
 ```
 
 2. Use the LoginSystem component on the root client route (/)  in your React application
@@ -51,30 +57,11 @@ router.use('/api/login',require('react-express-oauth-login-system/routes/loginsy
 ```
 import LoginSystem from 'react-express-oauth-login-system'
 
-const routeProps = {
-		authServer: 'https://localhost/api/login',
-		// pass an updated user back to the application
-		setUser: this.setUser, 
-		// pass an updated user that just logged in (so perhaps redirect)
-		onLogin: this.onLogin,
-		onLogout: this.onLogout,
-		// hook for waiting overlay
-		startWaiting: this.startWaiting,
-		stopWaiting: this.stopWaiting,
-		// enable external authentication services buttons
-		loginButtons: ['google','twitter','facebook','github']
-	}
-	return (
-      <div className="App">
-        {this.state.waiting && <div className="overlay" onClick={this.stopWaiting} ><img alt="loading" src='/loading.gif' /> </div>}
-        <header className="App-header">
-           <Router><div style={{width:'70%'}}>
-           <Route  exact={true} path='/' component={HomePage} />
-		   <PropsRoute path='/' component={LoginSystem}  {...routeProps}  />
-        </div></Router>
-        </header>
-      </div>
-    );
+
+<Router><div style={{width:'70%'}}>
+   <Route  exact={true} path='/' component={RedirectToLogin} />
+   <Route path='/' component={LoginSystem}  authServer={'https://localhost/api/login'} setUser={this.setUser} onLogin={this.onLogin} onLogout={this.onLogout} startWaiting={this.startWaiting} stopWaiting={this.stopWaiting} loginButtons={['google','twitter','facebook','github']} />
+</div></Router>
 
 ```
 
@@ -83,20 +70,20 @@ const routeProps = {
 All requests to your secured API endpoints must include an Authorization header including a bearer token
 
 ```
-		fetch(that.props.authServer+'/saveuser', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer '+user.token.access_token
-          },
-          body: JSON.stringify(user)
-        })
+	fetch(that.props.authServer+'/saveuser', {
+	  method: 'POST',
+	  headers: {
+		'Content-Type': 'application/json',
+		'Authorization': 'Bearer '+user.token.access_token
+	  },
+	  body: JSON.stringify(user)
+	})
 ```
 
 To secure an endpoint, include the authenticate function and use it as express middleware.
 
 ```
-var authenticate = require('react-express-oauth-login-system/authenticate.js')
+var authenticate = require('react-express-oauth-login-system/authenticate.js')(config)
 
 // An api endpoint that returns a short list of items
 router.get('/api/getList',authenticate, (req,res) => {

@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
-const config=require('../config');
-   
+
+let config = global.gConfig; 
 let utilFunctions =  {
   
   sendMail : function(from,to,subject,html) {

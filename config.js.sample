@@ -1,0 +1,48 @@
+module.exports = {
+    // EMAIL TRANSPORT
+    // REQUIRED
+    // google will complain first time and you will need to enable insecure apps on the email account :(
+    // check the src for alternate email configurations (based on [nodemailer](https://nodemailer.com/)
+    mailFrom:['USER@gmail.com'],
+    transport :{
+      service: 'gmail',
+      auth: {
+        user: 'USER@gmail.com',
+        pass: 'userpassword'
+      }
+    }
+
+   // API KEYS FOR EXTERNAL AUTHENTICATION
+   // OPTIONAL
+   googleClientId:'', // blahblah.apps.googleusercontent.com',
+   googleClientSecret:'',
+   twitterConsumerKey:'',
+   twitterConsumerSecret:'',
+   facebookAppId: '',
+   facebookAppSecret: '',
+   instagramClientId: '',
+   instagramClientSecret: '',
+   githubClientId: '',
+   githubClientSecret: '',
+
+
+   // USED for generating email links for confirm registration/recover password
+   // REQUIRED (default ok for demo)
+   authServer: "https://localhost/api/login",
+
+   database: 'browserexample',
+   databaseConnection: 'mongodb://localhost:27017/',   
+
+   // local oauth server
+   // UPDATE REQUIRED for security, public website
+   clientId:'test',  
+   clientSecret:'testpass',
+   // used on oauth consent screen when third party services ask for authorization
+   clientName:'Test Client',
+   clientWebsite:'https://localhost',
+   clientPrivacyPage:'https://localhost/privacy',
+   clientImage:''
+
+}
+
+

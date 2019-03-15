@@ -14,7 +14,9 @@ const fs = require('fs'),
 let app = express();
 var flash = require('connect-flash');
 
-var authenticate = require('react-express-oauth-login-system/authenticate');
+//var authenticate = require('react-express-oauth-login-system/authenticate');
+var authenticate = require('../authenticate');
+
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -29,7 +31,9 @@ var router = express.Router();
 
 // ENDPOINTS
 // login system
-var loginRouter = require('react-express-oauth-login-system/routes/loginsystem.js');
+//var loginRouter = require('react-express-oauth-login-system/routes/loginsystem.js');
+var loginRouter = require('../routes/loginsystem.js');
+
 //console.log(['INIT EXAMPLE login router',loginRouter])
 router.use('/api/login',loginRouter);
 

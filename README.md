@@ -12,8 +12,8 @@ It also integrates passport.js to enable login using Google, Twitter, Facebook a
 
 In the box
 - React components to implement a login and registration system.
-- Routes to support login, registration, password recovery and oauth login from various providers using passport.js
-- Routes to implement an oauth2 server using the oauth library and the mongodb integration from https://github.com/slavab89/oauth2-server-example-mongodb
+- Express routes to support login, registration, password recovery, oauth authorization and oauth login from various providers using passport.js
+- Express routes to implement an oauth2 server using the oauth library and the mongodb integration from https://github.com/slavab89/oauth2-server-example-mongodb
 
 
 ## Quickstart
@@ -127,6 +127,39 @@ https://developers.facebook.com/apps/
 https://console.developers.google.com/
 
 
-
-
 https://www.instagram.com/developer/ [DIABLED because it is not possible to ask for email address of logged in user as id :(]
+
+
+
+
+## Authorizing external services
+
+External services can use the oauth routes to obtain a token to access your API directly.
+In developing skills for Alexa(https://developer.amazon.com/) or Google Actions (https://console.actions.google.com/), 
+the project administration website allows for entering
+- authorization URL
+- token URL
+- clientId
+- clientSecret
+
+In the mongo database, create an entry in the oauthclients collection for each external service that can authenticate.
+
+
+Client entries can also include fields to be used on the authorization page that is loaded when the external service redirects to this website to ask the user permission to grant access. 
+- name
+- website_url
+- privacy_url
+
+```
+mongo browserexample
+> db.users.insert({"_id" : ObjectId("5c859a7a64997a72a107065b"), "clientId" : "newclient", "clientSecret" : "testpass", "name" : "New Client", "website_url" : "https://client.com", "privacy_url" : "https://client.com/privacy", "grants" : [ "authorization_code", "password", "refresh_token", "client_credentials" ], "redirectUris" : []})
+```
+
+The server creates an initial client based on configuration settings for local authentication purposes. Examine that item for details.
+
+```
+mongo browserexample
+> db.oauthclients.find()
+{ "_id" : ObjectId("5c859a7a64997a72a107065b"), "clientId" : "test", "clientSecret" : "testpass", "name" : "Test Client", "website_url" : "https://localhost", "privacy_url" : "https://localhost/privacy", "grants" : [ "authorization_code", "password", "refresh_token", "client_credentials" ], "redirectUris" : [ ], "__v" : 0 }
+```
+

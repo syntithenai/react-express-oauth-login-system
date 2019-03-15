@@ -34,8 +34,8 @@ npm i
 cd example
 cp config.js.sample config.js
 # nano config.js
-npm link ../ 
 npm i
+npm link ../ 
 npm start
 ```
 

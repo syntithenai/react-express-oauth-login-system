@@ -38,7 +38,7 @@
     "popper.js": "^1.14.7",
     "prop-types": "^15.6.2",
     "react": "^16.4.1",
-    "react-express-oauth-login-system": "^0.0.0",
+    "react-express-oauth-login-system": "^1.0.0",
     "react-confirm-alert": "^2.2.0",
     "react-dom": "^16.4.1",
     "react-icons": "^3.4.0",

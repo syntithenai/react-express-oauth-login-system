@@ -18,6 +18,8 @@ In the box
 
 ## Quickstart
 
+The demo assumes there is a mongodb server running on localhost. See example/config.js for details.
+
 To see the suite in action
 
 ```
@@ -35,7 +37,6 @@ cd example
 cp config.js.sample config.js
 # nano config.js
 npm i
-npm link ../ 
 npm start
 ```
 
@@ -71,6 +72,12 @@ import LoginSystem from 'react-express-oauth-login-system'
 </div></Router>
 
 ```
+
+The email templates for registration and forgot password can be set in config.
+
+To make layout changes, extend the LoginSystem class and override render. 
+
+
 
 3. Protecting your web API's
 

@@ -33,7 +33,8 @@ cd react-express-oauth-login-system/
 npm i
 cd example
 cp config.js.sample config.js
-# nano config.js 
+# nano config.js
+npm link ../ 
 npm i
 npm start
 ```

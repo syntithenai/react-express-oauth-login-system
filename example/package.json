@@ -40,7 +40,6 @@
     "react": "^16.4.1",
     "react-confirm-alert": "^2.2.0",
     "react-dom": "^16.4.1",
-    "react-express-oauth-login-system": "file:..",
     "react-icons": "^3.4.0",
     "react-router-dom": "^4.3.1",
     "react-scripts": "^1.1.4",
@@ -48,7 +47,7 @@
     "typescript": "^3.3.3333"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "nodemon indexjs | react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"

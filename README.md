@@ -142,13 +142,23 @@ the project administration website allows for entering
 - clientId
 - clientSecret
 
+The authorization and token urls are immediately under the path that you located the loginsystem express routes.
+For example 
+- https://localhost/api/login/authorize
+- https://localhost/api/login/token
+
+
+[Some services also allow a choice between implicit and authorization code flows. Use authorization code.]
+
+
 In the mongo database, create an entry in the oauthclients collection for each external service that can authenticate.
 
 
-Client entries can also include fields to be used on the authorization page that is loaded when the external service redirects to this website to ask the user permission to grant access. 
+Client entries can also include fields to be used on the authorization page that is loaded when the external service redirects to your website to ask the user permission to grant access. 
 - name
 - website_url
 - privacy_url
+
 
 ```
 mongo browserexample

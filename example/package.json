@@ -48,6 +48,7 @@
     "typescript": "^3.3.3333"
   },
   "scripts": {
+    "startreact" : "react-scripts start",
     "start": "nodemon indexjs | react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",

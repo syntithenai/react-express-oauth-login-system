@@ -210,13 +210,15 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 					  //item.access_token = generateToken();
 					  //item.access_token_created = new Date().getTime();
 					   if (!item.avatar) item.avatar = faker.commerce.productAdjective()+faker.name.firstName()+faker.name.lastName()
-					  let user = new database.User(item)
-			 		  requestToken(user).then(function(user) {
-						    //   console.log(['SAVE USER',user]);
-							  user.save().then(function(err,result) {
-								let token = user.token;
-								cb(null,Object.assign(sanitizeUser(user.toObject()),{token:token}))
-							  })                      
+					  let user = new database.User(item);
+					  user.save().then(function() {;
+						  requestToken(user).then(function(user) {
+								//   console.log(['SAVE USER',user]);
+								  user.save().then(function(err,result) {
+									let token = user.token;
+									cb(null,Object.assign(sanitizeUser(user.toObject()),{token:token}))
+								  })                      
+						  });
 					  });
 				  }
 			 }).catch(function(e) {

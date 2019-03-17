@@ -21,13 +21,16 @@ export default  class ForgotPassword extends Component {
      
      
     render() {
-           return  <form className="form-signin" onSubmit={(e) => {e.preventDefault(); this.props.recoverPassword(this.state.email,this.state.password,this.state.password2); return false} }>
-        
-                                
+           return  <div>
+           
+                               
          <Link to="/login/register" style={{clear:'both',display:'inline'}} ><button style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Register</button></Link>
          
          <Link to="/login/login" style={{clear:'both',display:'inline'}} ><button style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Login</button></Link>
         
+           <form className="form-signin" onSubmit={(e) => {e.preventDefault(); this.props.recoverPassword(this.state.email,this.state.password,this.state.password2); return false} }>
+        
+            
           <h1 className="h3 mb-3 font-weight-normal" style={{textAlign:'left'}}>Password Recovery</h1>
            
           {this.props.warning_message && <div className='warning-message'  >{this.props.warning_message}</div>}
@@ -42,7 +45,7 @@ export default  class ForgotPassword extends Component {
 
 			</fieldset>
         </form>
-       
+       </div>
     };
 }
   

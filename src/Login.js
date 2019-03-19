@@ -49,8 +49,8 @@ export default  class Login extends Component {
 		
            return <div> 
          
-         <Link to="/login/forgot" style={{clear:'both',display:'inline'}} ><button style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Forgot Password</button></Link>
-         <Link to="/login/register" style={{clear:'both',display:'inline'}} ><button style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Register</button></Link>
+         <Link to="/login/forgot" style={{clear:'both',display:'inline'}} ><div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Forgot Password</div></Link>
+         <Link to="/login/register" style={{clear:'both',display:'inline'}} ><div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Register</div></Link>
           <h1 className="h3 mb-3 font-weight-normal" style={{textAlign:'left'}}>Sign in</h1>
          {loginButtonsEnabled && loginButtonsEnabled.length > 0 && <div style={{float:'right'}}> using {loginButtons}  <br/> </div>}
              

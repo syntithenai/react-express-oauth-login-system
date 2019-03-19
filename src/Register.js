@@ -21,7 +21,6 @@ export default class Register extends Component {
             justSignedUp: false,
             forgotPassword: false,
             avatar: faker.commerce.productAdjective()+faker.name.firstName()
-            
         }
         this.change = this.change.bind(this);
         this.submitSignUp = this.submitSignUp.bind(this);
@@ -51,14 +50,14 @@ export default class Register extends Component {
                 
                 <div style={{paddingLeft:'1em',clear:'both'}}>
                      
-							<Link to="/login/forgot" >
-							  <button style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Forgot Password</button></Link>
-                           <Link to="/login/login" style={{clear:'both',display:'inline'}} ><button style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Login</button></Link>
+							
 
                     <form className="col-lg-12" style={{minWidth: '400px'}} method="POST" onSubmit={(e) => this.submitSignUp(e)}  >
                             <div className="form-group">
                          
-                         
+                         <Link to="/login/forgot" ><div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Forgot Password</div></Link>
+                           <Link to="/login/login" style={{clear:'both',display:'inline'}} ><div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Login</div></Link>
+                           
                             <h3 style={{textAlign:'left'}} className="card-title">Registration</h3>
                            
                            {this.state.warning_message && <div className='warning-message' >{this.state.warning_message}</div>}

@@ -11,8 +11,6 @@ const bodyParser = require('body-parser');
 const bluebird = require('bluebird');
 const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 
-
-
 	let config = global.gConfig;
 	var router = express.Router();
 
@@ -325,6 +323,7 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 
 	router.use('/login',function(req, res, next) {	  //  console.log('do login NOW')
 		passport.authenticate('local', function(err, user, info) {
+			res.cookie('user', user.toObject(), { maxAge: 900000, httpOnly: false });
 			res.json(req.user);
 		})(req, res, next);
 	})  
@@ -492,7 +491,9 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 	    				  requestToken(user).then(function(user) {
 							//console.log('signin token',user.token)
 							    let token = user.token;
-							     res.send(Object.assign(sanitizeUser(user.toObject()),{token:token}))
+							    let sanitizedUser = Object.assign(sanitizeUser(user.toObject()),{token:token})
+							    res.cookie('user', JSON.stringify(sanitizedUser), { maxAge: 900000, httpOnly: false });
+							     res.send(sanitizedUser)
 						  });
 						} else {
 							res.send({message:'No matching user'} );
@@ -607,8 +608,9 @@ recover_password_token
 						} else {
 							if (user) {
 								requestRefreshToken(req.query.code).then(function(token) {
-									user.token = token;
-								    res.send(Object.assign(sanitizeUser(user.toObject()),{token:token}))
+									let sanitizedUser = Object.assign(sanitizeUser(user.toObject()),{token:token})
+									res.cookie('user', JSON.stringify(sanitizedUser), { maxAge: 900000, httpOnly: false });
+									res.send(sanitizedUser)
 								});
 							} else {
 									res.send({error:'no match'})  

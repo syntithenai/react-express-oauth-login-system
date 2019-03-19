@@ -8,7 +8,7 @@ export default  class ForgotPassword extends Component {
     
     constructor(props) {
         super(props);
-        this.state={signin_username:'syntithenai@gmail.com',signin_password:'aaa',rememberme:false};
+        this.state={signin_username:'',signin_password:'',rememberme:false};
         this.change = this.change.bind(this);
     };
          
@@ -24,9 +24,9 @@ export default  class ForgotPassword extends Component {
            return  <div>
            
                                
-         <Link to="/login/register" style={{clear:'both',display:'inline'}} ><button style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Register</button></Link>
+         <Link to="/login/register" style={{clear:'both',display:'inline'}} ><div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Register</div></Link>
          
-         <Link to="/login/login" style={{clear:'both',display:'inline'}} ><button style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Login</button></Link>
+         <Link to="/login/login" style={{clear:'both',display:'inline'}} ><div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Login</div></Link>
         
            <form className="form-signin" onSubmit={(e) => {e.preventDefault(); this.props.recoverPassword(this.state.email,this.state.password,this.state.password2); return false} }>
         

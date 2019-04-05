@@ -1,3 +1,4 @@
+/* global document */
 /* dis-eslint-disable */
 import React, { Component } from 'react';
 import {BrowserRouter as Router,Route,Link,Switch,Redirect} from 'react-router-dom'
@@ -6,9 +7,11 @@ import PropsRoute from './PropsRoute'
 import Profile from './Profile'
 import Login from './Login'
 import Register from './Register'
+import LoginRedirect from './LoginRedirect'
 import ForgotPassword from './ForgotPassword'
 import OAuth from './OAuth'
-  
+import {getCookie,getAxiosClient} from './axiosCSRF'  
+
 //var config=require('./config')
 
 export default  class LoginSystem extends Component {
@@ -31,76 +34,81 @@ export default  class LoginSystem extends Component {
        this.onLogin = this.onLogin.bind(this);
        this.isLoggedIn = this.isLoggedIn.bind(this)
        this.submitWarning = this.submitWarning.bind(this);
-       
+       this.axiosClient = null;
     };
     
     componentDidMount() {
         let that=this;
-			// login using request parameter code 
-			function loginWithCode(code) {
-				return new Promise(function(resolve,reject) {
-					if (code && code.length > 0 && code !== undefined && code !== 'undefined'  && code !== 'null') {
-						console.log(['LoginByCode',code])
-						fetch(that.props.authServer+'/me?code='+code, {
-						  method: 'GET',
-						  headers: {
-							'Content-Type': 'application/json',
-						  },
-						}).then(function(res) {
-							return res.json();  
-						}).then(function(user) {
-							console.log(['lOGINbYcODE got res',user]);
-							that.setUser(user);
-							console.log(['LoginByCode check user auth',user])
-							let authRequest = localStorage.getItem('auth_request');
-							if (user && user.token && user.token.access_token && user.token.access_token.length > 0 ) {
-								if (authRequest) {
-									// using the showButton property, a button will be shown instead of immediate automatic redirect
-									if (that.props.showButton) {
-										that.setState({authRequest:authRequest});
-									} else {
-										// if there is an auth request pending, jump to that
-										that.props.history.push('/login/oauth');
-									}
-								}
-							} 
-						}).catch(function(err) {
-							console.log(err);
-							reject();
-						});				
-					}
-				});
-			}
-			let code = null;
-			if (that.props.location.search.startsWith('?code=')) {
-				code = that.props.location.search.slice(6);
-				if (code) {
-					loginWithCode(code)
-				} 
-			} else {
-				try {
-				  let token = JSON.parse(localStorage.getItem('token'));
-				  if (token && token !== undefined) {
-					  that.refreshLogin(token);
-				  }
-				} catch (e) {
-				}
-			}
+ 			// ensure xsrf header in all ajax requests
+			this.axiosClient = getAxiosClient();
+
+			//// login using request parameter code 
+			//function loginWithCode(code) {
+				//return new Promise(function(resolve,reject) {
+					//if (code && code.length > 0 && code !== undefined && code !== 'undefined'  && code !== 'null') {
+						//console.log(['LoginByCode',code])
+						//that.axiosClient({
+						  //url: that.props.authServer+'/me',
+						  
+						  //method: 'get',
+						//}).then(function(res) {
+							//return res.data;  
+						//}).then(function(user) {
+							//console.log(['lOGINbYcODE got res',user]);
+							//that.setUser(user);
+							//console.log(['LoginByCode check user auth',user])
+							//let authRequest = localStorage.getItem('auth_request');
+							//if (user && user.token && user.token.access_token && user.token.access_token.length > 0 ) {
+								//if (authRequest) {
+									//// using the showButton property, a button will be shown instead of immediate automatic redirect
+									//if (that.props.showButton) {
+										//that.setState({authRequest:authRequest});
+									//} else {
+										//// if there is an auth request pending, jump to that
+										//that.props.history.push('/login/oauth');
+									//}
+								//}
+							//} 
+							////else {
+								////that.props.history.push('/login/login');
+							////}
+						//}).catch(function(err) {
+							//console.log(err);
+							//reject();
+						//});				
+					//}
+				//});
+			//}
+			//let code = null;
+			//if (that.props.location.search.startsWith('?code=')) {
+				//code = that.props.location.search.slice(6);
+				//if (code) {
+					//loginWithCode(code)
+				//} 
+			//} else {
+				//try {
+				  //let token = JSON.parse(localStorage.getItem('token'));
+				  //if (token && token !== undefined) {
+					  //that.refreshLogin(token);
+				  //}
+				//} catch (e) {
+				//}
+			//}
 	};
    
     saveUser(user) {
          let that = this;
          if (this.props.startWaiting) this.props.startWaiting();
-         return fetch(that.props.authServer+'/saveuser', {
-          method: 'POST',
+         return that.axiosClient( {
+          url: that.props.authServer+'/saveuser',
+          method: 'GET',
           headers: {
-            'Content-Type': 'application/json',
             'Authorization': 'Bearer '+user.token.access_token
           },
           body: JSON.stringify(user)
         }).then(function(res) {
             if (that.props.stopWaiting) that.props.stopWaiting();
-            return res.json();  
+            return res.data;  
         }).then(function(res) {
             if (res.user) that.setState({user:res.user});
             if (res.warning_message) that.submitWarning(res.warning_message);
@@ -115,17 +123,18 @@ export default  class LoginSystem extends Component {
         this.submitWarning('');
         if (this.props.startWaiting) this.props.startWaiting();
         setTimeout(function() {
-           fetch(that.props.authServer+'/signin', {
+           that.axiosClient( {
+              url: that.props.authServer+'/signin',
               method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
               body: JSON.stringify({
                 username: user,
                 password: pass
               })
-            }).then(this.checkStatus)
-          .then(that.parseJSON)
+            })
+            .then(this.checkStatus)
+            .then(function(res) {
+            return res.data;  
+		   })
           .then(function(user) {
                 if (that.props.stopWaiting) that.props.stopWaiting();
                 if (user.message) {
@@ -145,7 +154,7 @@ export default  class LoginSystem extends Component {
 								that.props.history.push('/login/oauth');
 							}
 						} else {
-							that.onLogin(user);
+							that.onLogin(user,that.props);
 						//	that.props.history.push('/login/profile');
 						}
 					} 
@@ -162,8 +171,9 @@ export default  class LoginSystem extends Component {
        var that=this;
        this.submitWarning('');
        if (this.props.startWaiting) this.props.startWaiting();
-       fetch(that.props.authServer+'/signup', {
-          method: 'POST',
+       that.axiosClient( {
+          url: that.props.authServer+'/signup',
+          method: 'post',
           headers: {
             'Content-Type': 'application/json'
           },
@@ -176,8 +186,10 @@ export default  class LoginSystem extends Component {
           })
         })
         .then(this.checkStatus)
-      .then(this.parseJSON)
-      .then(function(data) {
+        .then(function(res) {
+            return res.data;  
+		  })
+          .then(function(data) {
 		  if (that.props.stopWaiting) that.props.stopWaiting();
 			if (data.warning) {
                 that.submitWarning(data.warning);
@@ -193,8 +205,9 @@ export default  class LoginSystem extends Component {
         let that = this;
        console.log(['recover',email,password,password2]);
         if (this.props.startWaiting) this.props.startWaiting();
-       fetch(that.props.authServer+'/recover', {
-          method: 'POST',
+       that.axiosClient({
+          url: that.props.authServer+'/recover',
+          method: 'post',
           headers: {
             'Content-Type': 'application/json'
           },
@@ -205,8 +218,10 @@ export default  class LoginSystem extends Component {
             code: Math.random().toString(36).replace(/[^a-z]+/g, '')
           })
         }).then(this.checkStatus)
-      .then(this.parseJSON)
-      .then(function(data) {
+      .then(function(res) {
+            return res.data;  
+		  })
+       .then(function(data) {
             if (that.props.stopWaiting) that.props.stopWaiting();
        
             if (data.warning_message) {
@@ -223,24 +238,35 @@ export default  class LoginSystem extends Component {
   
  
 	refreshLogin (token) {
-	  		console.log('refresh login')
-			let that = this;
+		console.log('refresh login')
+		let that = this;
+		return new Promise(function(resolve,reject) {
+			console.log(['refresh login sp',that])
+		//console.log('refresh login token '+token)
+		//resolve();
 			if (token) {
-				let code = token.refresh_token;
-				fetch(that.props.authServer+'/me?code='+code, {
-				  method: 'GET',
+				that.axiosClient = getAxiosClient();
+				that.axiosClient.get( that.props.authServer+'/me',{
 				  headers: {
-					'Content-Type': 'application/json',
-				  },
-				}).then(function(res) {
-					return res.json();  
-				}).then(function(user) {
+					'Authorization': 'Bearer '+token
+				  }
+				})
+				.then(function(res) {
+				console.log('refresh login data')
+				  return res.data;  
+				})
+				.then(function(user) {
 					console.log(['refreshed ',user])
 					that.setUser(user);
+					resolve(user);
 				}).catch(function(err) {
 					console.log(err);
+					reject();
 				});				
+			} else {
+				reject();
 			}
+		})
 	}
    
     // xhr processing chain
@@ -261,29 +287,32 @@ export default  class LoginSystem extends Component {
     
     
    isLoggedIn() { 
-	   console.log(['IS LOGGED IN',this.state.user])
-      if (this.state.user  && this.state.user.token && this.state.user.token.access_token  && this.state.user.token.access_token.length > 0) {
-          return true;
+	  let token = getCookie('access-token');
+	  if (token && token.length > 0) {
+		return true;  
+	  //} 
+	  //// console.log(['IS LOGGED IN',this.state.user])
+      //if (this.state.user  && this.state.user.token && this.state.user.token.access_token  && this.state.user.token.access_token.length > 0) {
+          //return true;
       } else {
           return false;
       }
     }; 
      
-    onLogin(user) {
+    onLogin(user,props) {
 		let that =this;
 		// just the token into localstorage
-        localStorage.setItem('token',JSON.stringify(user.token));
+       // localStorage.setItem('token',JSON.stringify(user.token));
         this.setState({user:user});
         clearInterval(this.refreshInterval);
         this.refreshInterval = setInterval(function() {
-			that.refreshLogin(user.token)
+			that.refreshLogin(getCookie('access-token'))
 		},180000);
-        if (this.props.onLogin) this.props.onLogin(user,this.props);
+        if (this.props.onLogin) this.props.onLogin(user,props);
     };
     
     setUser(user) {
 		// just the token into localstorage
-        localStorage.setItem('token',JSON.stringify(user.token));
         this.setState({user:user});
         if (this.props.setUser) this.props.setUser(user);
     };
@@ -300,15 +329,29 @@ export default  class LoginSystem extends Component {
      
   
   logout() {
-      localStorage.setItem('token',null);
+	  let that = this;
+	  console.log('DO LOGOUT')
+      //localStorage.setItem('token',null);
 	  let user = this.state.user;
 	  this.setState({user:null});
-      if (this.props.onLogout) this.props.onLogout(user,this.props);
+	  that.axiosClient( {
+		  url: that.props.authServer+'/logout',
+		  method: 'get',
+		  headers: {
+			'Content-Type': 'application/json',
+		  },
+		}).then(function(res) {
+			console.log('DOne LOGOUT')
+			if (that.props.onLogout) that.props.onLogout(user,that.props);  
+		}).catch(function(err) {
+			console.log(err);
+		});	
+      
   };
- 
+  
     
     render() {
-		//let that = this;
+		let that = this;
         let callBackFunctions = {
             submitSignUp : this.submitSignUp,
             submitSignIn : this.submitSignIn,
@@ -339,13 +382,14 @@ export default  class LoginSystem extends Component {
 			//}
             return <b></b>;
         };
+    
         
-        
-		if (this.state.authRequest) {
+        if (this.state.authRequest) {
 			return <div className='pending-auth-request' ><Link to='/login/auth' className='btn btn-success'  >Pending Authentication Request</Link></div>
 		} else {
 			return (<div>
 		        <Route path='/login' component={DefaultRedirect} />
+                <PropsRoute {...callBackFunctions} path='/' component={LoginRedirect} />
                 <PropsRoute {...callBackFunctions} path='/login/profile' component={Profile}   />
                 <PropsRoute {...callBackFunctions} path='/login/login' component={Login} />
                 <PropsRoute {...callBackFunctions} path='/login/register' component={Register} />

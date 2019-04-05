@@ -13,6 +13,7 @@
     "connect": "^3.6.6",
     "connect-flash": "^0.1.1",
     "cookie-parser": "^1.4.4",
+    "csurf": "^1.9.0",
     "eslint": "^3.16.1",
     "eslint-config-airbnb-base": "^11.1.1",
     "eslint-plugin-import": "^2.2.0",
@@ -38,9 +39,9 @@
     "popper.js": "^1.14.7",
     "prop-types": "^15.6.2",
     "react": "^16.4.1",
-    "react-express-oauth-login-system": "^1.0.0",
     "react-confirm-alert": "^2.2.0",
     "react-dom": "^16.4.1",
+    "react-express-oauth-login-system": "^1.0.0",
     "react-icons": "^3.4.0",
     "react-router-dom": "^4.3.1",
     "react-scripts": "^1.1.4",
@@ -48,8 +49,8 @@
     "typescript": "^3.3.3333"
   },
   "scripts": {
-    "startreact" : "react-scripts start",
-    "start": "nodemon indexjs | react-scripts start",
+    "startreact": "react-scripts start",
+    "start": "nodemon index.js | react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"

@@ -1,27 +1,28 @@
 var express = require('express');
 var fetch = require('node-fetch');
+//var axios = require('axios')
 const mustache = require('mustache');
 const crypto = require("crypto"); 
 var faker = require('faker');
 var btoa = require('btoa');
 const mongoose = require('mongoose');
 mongoose.Promise = Promise;
-
+var md5 = require('md5');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const bluebird = require('bluebird');
 const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 
-	let config = global.gConfig;
-	var router = express.Router();
-
+let config = global.gConfig;
+var router = express.Router();
 	
-	var utils = require("./utils")
+var utils = require("./utils")
 	/**********************************
 	 * INITIALISE MONGOOSE AND RAW MONGODB CONNECTIONS
 	 *********************************/
 	var ObjectId = require('mongodb').ObjectID;
 
-	if (!config.userFields || config.userFields.length === 0) config.userFields=['name','avatar','username','token','access_token','access_token_created','password','tmp_password']
+	if (!config.userFields || config.userFields.length === 0) config.userFields=['name','avatar','username','token','password','tmp_password']
 	//const User F= require('./User');
 
 	mongoose.connect(config.databaseConnection + config.database,{useMongoClient: true}).then(() => {
@@ -49,10 +50,32 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 	});
 	global.Promise = bluebird;
 
-
 	router.use(bodyParser.json());
 	router.use(bodyParser.urlencoded({ extended: false }));
 
+
+	// implement csrf check locally so fine grain selection of protected paths can be applied (leaving oauth paths public)
+	// can be enabled/disabled in configuration
+	let csrfCheck = function(req,res,next) { next()}
+	if (config.csrfCheck) {
+		csrfCheck = function(req,res,next) {
+			if (req.cookies && req.cookies['csrf-token'] && req.cookies['csrf-token'].length > 0) {
+				if (req.headers && req.headers['x-csrf-token'] && req.headers['x-csrf-token'].length > 0 && req.headers['x-csrf-token'] === req.cookies['csrf-token']) {
+					next();
+				} else if (req.query && req.query['_csrf'] && req.query['_csrf'].length > 0 && req.query['_csrf'] === req.cookies['csrf-token']) {
+					next();
+				} else if (req.body && req.body['_csrf'] && req.body['_csrf'].length > 0 && req.body['_csrf'] === req.cookies['csrf-token']) {
+					next();
+				} else {
+					res.send({error:'Failed CSRF check'});
+				}
+			} else {
+				res.send({error:'Failed CSRF check'});
+			}
+		} 
+	}
+	
+	// no csrf check for external oauth routes
 	router.all('/token', oauthMiddlewares.token);
 	router.post('/authorize', oauthMiddlewares.authorize);
 	router.get('/authorize',function(req,res) {
@@ -192,37 +215,56 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 	));
 
 
+	function loginSuccessJson(user,res,cb) {
+		console.log(['SAVE USER',user]);
+		requestToken(user).then(function(userAndToken) {
+				// cache the refresh token in the user db collection
+				console.log(['Done SAVE USER',userAndToken]);
+				//user.token = userAndToken.token;
+				//user.save().then(function(err,result) {
+					let token = userAndToken.token;
+					//don't send the refresh token to the client
+					if (token) {
+						token.refresh_token = null;
+						res.cookie('access-token',token.access_token);
+						cb(null,Object.assign(sanitizeUser(userAndToken),{token:token}))
+					} else {
+						cb('missing token on login success',null)
+					}
+				//})                      
+		  });
+	}
+
 	function findOrCreateUser(name,email,cb) {
 		if (email && email.length > 0) {
-		 //console.log(['/findorcreate have mail',email]);
-			 database.User.findOne({username:email.trim()}).then(function(user) {
-		         //console.log(['/findorcreate fnd',user]);
-				  if (user!=null) {
-					  requestToken(user).then(function(user) {
-							let token = user.token;
-							 cb(null,Object.assign(sanitizeUser(user.toObject()),{token:token}))					
-					  });
-				  } else {
-					  var pw = crypto.randomBytes(20).toString('hex');
-					  let item={name:name,username:email,password:pw};
-					  //item.access_token = generateToken();
-					  //item.access_token_created = new Date().getTime();
-					   if (!item.avatar) item.avatar = faker.commerce.productAdjective()+faker.name.firstName()+faker.name.lastName()
-					  let user = new database.User(item);
-					  user.save().then(function() {;
-						  requestToken(user).then(function(user) {
-								//   console.log(['SAVE USER',user]);
-								  user.save().then(function(err,result) {
-									let token = user.token;
-									cb(null,Object.assign(sanitizeUser(user.toObject()),{token:token}))
-								  })                      
+			if (!config.allowedUsers || config.allowedUsers.length === 0 ||  (config.allowedUsers.indexOf(req.body.username.toLowerCase().trim()) >= 0 )) {
+				
+			 //console.log(['/findorcreate have mail',email]);
+				 database.User.findOne({username:email.trim()}).then(function(user) {
+					 console.log(['/findorcreate fnd',user]);
+					  if (user!=null) {
+						  	// USER LOGIN SUCCESS JSON
+							cb(null,user.toObject());
+					  } else {
+						  var pw = crypto.randomBytes(20).toString('hex');
+						  let item={name:name,username:email,password:pw};
+						  //item.access_token = generateToken();
+						  //item.access_token_created = new Date().getTime();
+						   if (!item.avatar) item.avatar = faker.commerce.productAdjective()+faker.name.firstName()+faker.name.lastName()
+						  
+						  let user = new database.User(item);
+						  user.save().then(function() {;
+								// USER LOGIN SUCCESS JSON
+								cb(null,user.toObject());
 						  });
-					  });
-				  }
-			 }).catch(function(e) {
-				 //console.log(e);
-				 cb(e, null);
-			 });
+					  }
+				 }).catch(function(e) {
+					 //console.log(e);
+					 cb(e, null);
+				 });
+			} else {
+				cb('Not allowed to register', null);
+			}		 
 		} else {
 			cb('no user', null);
 		}
@@ -234,6 +276,7 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 	
 	function requestToken(user) {
 		 return new Promise(function(resolve,reject) {
+			// console.log(['REQUEST TOKEN',user])
 			 var params={
 				username: user.username,
 				password: user.password,
@@ -241,7 +284,7 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 				'client_id':config.clientId,
 				'client_secret':config.clientSecret
 			  };
-			  //console.log(['RQUEST TOKEN',params])
+			  console.log(['RQUEST TOKEN',params])
 			  return fetch(config.authServer+"/token", {
 				  method: 'POST',
 				  headers: {
@@ -252,11 +295,10 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 				}).then(function(response) {
 					return response.json();
 				}).then(function(token) {
-					//console.log(['request token got token',token]);
-					//res.redirect(config.redirectOnLogin + '?code='+token.access_token);
-					//res.send({user:user,token:token});
+					console.log(['got token',token])
 					if (token && token.access_token && token.access_token.length > 0) {
 						user.token = token;
+						console.log(['got user and token',user])
 						resolve(user);
 					} else {
 						console.log(['ERROR REQUESTING TOKEN',token])
@@ -269,42 +311,6 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 		});
 	}
 	
-	function requestRefreshToken(refreshToken) {
-		 return new Promise(function(resolve,reject) {
-			 var params={
-				refresh_token: refreshToken,
-				'grant_type':'refresh_token',
-				'client_id':config.clientId,
-				'client_secret':config.clientSecret
-			  };
-			//  console.log(['RQUEST TOKEN',params])
-			  return fetch(config.authServer+"/token", {
-				  method: 'POST',
-				  headers: {
-					'Content-Type': 'application/x-www-form-urlencoded',
-				  },
-				  
-				  body: Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&')
-				}).then(function(response) {
-					return response.json();
-				}).then(function(token) {
-					//console.log(['got token',token]);
-					//res.redirect(config.redirectOnLogin + '?code='+token.access_token);
-					//res.send({user:user,token:token});
-					if (token.access_token && token.access_token.length > 0) {
-						resolve(token);
-						//token.refresh_token = refreshToken;
-					} else {
-						console.log(['ERROR REQUESTING TOKEN',token])
-						reject(token);
-					}
-				}).catch(function(err) {
-						console.log(['ERROR REQUESTING TOKEN',err])
-				});
-		});
-	}
-	
-
 	function sanitizeUser(user) {
 		let item={};
 		//console.log(['sanitize user',config.userFields]);
@@ -318,33 +324,41 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 		 delete item.tmp_password;
 		 return item;
 	}
-	
+
 	router.use(passport.initialize());
 
-	router.use('/login',function(req, res, next) {	  //  console.log('do login NOW')
+	router.use('/login',csrfCheck,function(req, res, next) {	  //  console.log('do login NOW')
 		passport.authenticate('local', function(err, user, info) {
-			res.cookie('user', user.toObject(), { maxAge: 900000, httpOnly: false });
-			res.json(req.user);
+			loginSuccessJson(user,res,function(err,finalUser) {
+				if (err) console.log(err);
+				res.json(finalUser);
+			})
 		})(req, res, next);
 	})  
 
 	router.use('/google',function(req, res, next) {
 		passport.authenticate('google', { scope: ['profile','email'] })(req,res,next);
 	}) 
+	
 	router.get('/googlecallback', 
-	  passport.authenticate('google', { failureRedirect: '/login' }),
-	  function(req, res) {
-		res.redirect('/login'+'?code='+req.user.token.refresh_token);
-     });
+		passport.authenticate('google', { failureRedirect: '/login' }),
+		function(req, res) {
+			loginSuccessJson(req.user,res,function(err,user) {
+				res.redirect('/login/success');
+			});
+		}
+	);
 	
 	router.use('/twitter',function(req, res, next) {
 		passport.authenticate('twitter', { scope: ['email'] })(req,res,next);
 	}) 
 	router.get('/twittercallback', 
 	  passport.authenticate('twitter', { failureRedirect: '/login' }),
-	  function(req, res, next) {
-		res.redirect('/login'+'?code='+req.user.token.refresh_token);
-     });
+	  function(req, res, next)	 {
+		loginSuccessJson(req.user,res,function(err,user) {
+			res.redirect('/login/success');
+		});
+	});
 	
 	router.use('/facebook',function(req, res, next) {
 		passport.authenticate('facebook', { scope: ['email'] })(req,res,next);
@@ -352,8 +366,10 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 	router.get('/facebookcallback', 
 	  passport.authenticate('facebook', { failureRedirect: '/login' }),
 	  function(req, res, next) {
-		res.redirect('/login'+'?code='+req.user.token.refresh_token);
-     });
+		loginSuccessJson(req.user,res,function(err,user) {
+			res.redirect('/login/success');
+		});
+	 });
 	
 	// NO ACCESS TO EMAIL ADDRESS
 	//router.use('/instagram',function(req, res, next) {
@@ -376,15 +392,17 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 	router.get('/githubcallback', 
 	  passport.authenticate('github', { failureRedirect: '/login' }),
 	  function(req, res, next) {
-		res.redirect('/login'+'?code='+req.user.token.refresh_token);
-     });
+			loginSuccessJson(req.user,res,function(err,user) {
+			res.redirect('/login/success');
+		});
+	 });
 	
 	
 	
 	/********************
 	 * SIGNUP
 	 ********************/
-	router.post('/signup', function(req, res) {
+	router.post('/signup', csrfCheck,function(req, res) {
 			if (req.body.username && req.body.username.length > 0 && req.body.name && req.body.name.length>0 && req.body.avatar && req.body.avatar.length>0 && req.body.password && req.body.password.length>0 && req.body.password2 && req.body.password2.length>0) {
 			if (!config.allowedUsers || config.allowedUsers.length === 0 ||  (config.allowedUsers.indexOf(req.body.username.toLowerCase().trim()) >= 0 )) {
 				
@@ -446,19 +464,13 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 						if (new Date().getTime() - parseInt(user.signup_token_timestamp,10) < 600000) {
 							
 							var userId = user._id;
-						  user.password = user.tmp_password;
-						  user.signup_token = undefined;
-						  user.signup_token_timestamp =  undefined;
-						  user.tmp_password = undefined;
-						  user.save().then(function() {
-							  requestToken(user).then(function(user) {
-								  res.redirect('/login' + '?code='+user.token.refresh_token);
-							  }).catch(function(e) {
-								  res.send({message:'Error requesting token in signup confirmation'});
-							  });
-						  }).catch(function(e) {
-								  res.send({message:'Error saving user in signup confirmation'});
-							  });;
+							user.password = user.tmp_password;
+							user.signup_token = undefined;
+							user.signup_token_timestamp =  undefined;
+							user.tmp_password = undefined;
+							loginSuccessJson(user,res,function(err,user) {
+								res.redirect('/login/success');
+							});
 					   } else {
 						   res.send('token timeout. restart request')
 					   }
@@ -477,9 +489,17 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 
 
 	/********************
+	 * SIGN OUT
+	 ********************/
+	router.get('/logout', function(req, res) {
+		res.clearCookie('access-token');
+		res.send({})
+	});
+	
+	/********************
 	 * SIGN IN
 	 ********************/
-	router.post('/signin', function(req, res) {
+	router.post('/signin',csrfCheck, function(req, res) {
 		//console.log('signin')
 		//console.log(req.body);
 		if (req.body.username && req.body.username.length > 0 && req.body.password && req.body.password.length>0) {
@@ -488,13 +508,10 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 				.then(function(user)  {
 					//console.log('signin user',user)
 						if (user != null) {
-	    				  requestToken(user).then(function(user) {
-							//console.log('signin token',user.token)
-							    let token = user.token;
-							    let sanitizedUser = Object.assign(sanitizeUser(user.toObject()),{token:token})
-							    res.cookie('user', JSON.stringify(sanitizedUser), { maxAge: 900000, httpOnly: false });
-							     res.send(sanitizedUser)
-						  });
+						   loginSuccessJson(user,res,function(err,finalUser) {
+								if (err) console.log(err);
+								res.json(finalUser); 
+							})
 						} else {
 							res.send({message:'No matching user'} );
 						}
@@ -512,7 +529,7 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 	/********************
 	 * REQUEST  PASSWORD RECOVERY EMAIL
 	 ********************/
-	router.post('/recover', function(req, res) {
+	router.post('/recover', csrfCheck,function(req, res) {
 		if (req.body.email && req.body.email.length > 0 && req.body.code && req.body.code.length > 0) {
 			if (!req.body.password || req.body.password.length==0 || !req.body.password2 || req.body.password2.length==0) {
 				res.send({warning_message:'Empty password is not allowed'});
@@ -566,18 +583,16 @@ recover_password_token
 				.then(function(user)  {
 					if (user != null) {
 					  if (new Date().getTime() - parseInt(user.recover_password_token_timestamp,10) < 600000) {
-						  var userId = user._id;
-						  requestToken(user).then(function(user) {
-							  user.password = user.tmp_password;
-							  user.recover_password_token = undefined;
-							  user.recover_password_token_timestamp = undefined;
-							  
-							  user.tmp_password = undefined;
-							  user.save().then(function() {
-								   res.redirect('/login' + '?code='+user.token.refresh_token);
-							  }).catch(function(e) {
-								  res.send('failed ' );
-							  });
+						user.password = user.tmp_password;
+						user.recover_password_token = undefined;
+						user.recover_password_token_timestamp = undefined;
+						user.tmp_password = undefined;
+						var userId = user._id;
+						  user.save().then(function() {
+							 loginSuccessJson(user,res,function(err,finalUser) {
+								if (err) console.log(err);
+								res.redirect('/login/success'); 
+							})
 						  });	
 					   } else {
 						   	  res.send('token timeout restart request' );
@@ -592,44 +607,55 @@ recover_password_token
 
 
 
+	//function requestRefreshToken(refreshToken) {
+		 //return new Promise(function(resolve,reject) {
+			 //var params={
+				//refresh_token: refreshToken,
+				//'grant_type':'refresh_token',
+				//'client_id':config.clientId,
+				//'client_secret':config.clientSecret
+			  //};
+			////  console.log(['RQUEST TOKEN',params])
+			  //return fetch(config.authServer+"/token", {
+				  //method: 'POST',
+				  //headers: {
+					//'Content-Type': 'application/x-www-form-urlencoded',
+				  //},
+				  
+				  //body: Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&')
+				//}).then(function(response) {
+					//return response.json();
+				//}).then(function(token) {
+					//if (token.access_token && token.access_token.length > 0) {
+						//resolve(token);
+					//} else {
+						//console.log(['ERROR REQUESTING TOKEN',token])
+						//reject(token);
+					//}
+				//}).catch(function(err) {
+						//console.log(['ERROR REQUESTING TOKEN',err])
+				//});
+		//});
+	//}
+	
+
 	/********************
-	 * Get user info using refresh token
+	 * Request an updated access token 
 	 ********************/
-	router.get('/me',function(req,res) {
-		//database.OAuthAccessToken.findOne({$and:[{accessToken:{$eq:token}},{accessTokenExpiresAt: {$gt: new Date()}}]},function(err,token) {
-		database.OAuthRefreshToken.findOne({refreshToken:{$eq:req.query.code}},function(err,refreshToken) {
-			if (err) {
-				res.send({error:err})  
-			} else {
-				if (refreshToken) {
-					database.User.findOne({_id:refreshToken.user}, function (err, user) {
-						if (err) { 
-							res.send({error:err})  
-						} else {
-							if (user) {
-								requestRefreshToken(req.query.code).then(function(token) {
-									let sanitizedUser = Object.assign(sanitizeUser(user.toObject()),{token:token})
-									res.cookie('user', JSON.stringify(sanitizedUser), { maxAge: 900000, httpOnly: false });
-									res.send(sanitizedUser)
-								});
-							} else {
-									res.send({error:'no match'})  
-							}
-						}
-					});	 			
-				} else {
-					res.send({error:'no match on token'})  
-				}
-			}
-		});
-			 
-			 
+	router.get('/me',csrfCheck,oauthMiddlewares.authenticate,function(req,res) {
+		if (req.user && req.user._id) {
+			loginSuccessJson(req.user.user,res,function(err,finalUser) {
+				if (err) console.log(err);
+				res.json(finalUser); 
+			})
+			 			
+		}
 	})
 
 	/********************
 	 * SAVE USER, oauthMiddlewares.authenticate
 	 ********************/
-	router.use('/saveuser',oauthMiddlewares.authenticate, function(req, res) {
+	router.use('/saveuser',csrfCheck,oauthMiddlewares.authenticate, function(req, res) {
 		//console.log(['SAVE USER',req.body]);
 		if (req.body._id && req.body._id.length > 0) {
 			if (req.body.password && req.body.password.length > 0 && req.body.password2 && req.body.password2.length > 0 && req.body.password2 != req.body.password)  {
@@ -682,7 +708,7 @@ recover_password_token
 		}
 	});
 
-	router.get('/oauthclient', oauthMiddlewares.authenticate,function(req,res) {
+	router.get('/oauthclient', csrfCheck,oauthMiddlewares.authenticate,function(req,res) {
 		//  {access_token_created :{$gt: tokenCutoff} }
 		//User.findOne({$and:[ {access_token: {$eq:token}}] }, function (err, user) {
 		let clientId = req.query.clientId;

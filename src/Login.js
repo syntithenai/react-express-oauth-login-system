@@ -26,14 +26,14 @@ export default  class Login extends Component {
     };
      
     componentDidMount() {
-        if (this.props.isLoggedIn()) {
-	         this.props.history.push("/login/profile");
-       }
+        //if (this.props.isLoggedIn()) {
+	         //this.props.history.push("/login/profile");
+       //}
     }; 
     componentDidUpdate() {
-        if (this.props.isLoggedIn()) {
-	       this.props.history.push("/login/profile");
-       }
+        //if (this.props.isLoggedIn()) {
+	       //this.props.history.push("/login/profile");
+       //}
     };
      
     render() {
@@ -48,7 +48,7 @@ export default  class Login extends Component {
 		 
 		
            return <div> 
-         
+         {this.props.isLoggedIn() && <Link to="/login/profile" style={{clear:'both',display:'inline'}} ><div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Profile</div></Link>}
          <Link to="/login/forgot" style={{clear:'both',display:'inline'}} ><div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Forgot Password</div></Link>
          <Link to="/login/register" style={{clear:'both',display:'inline'}} ><div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Register</div></Link>
           <h1 className="h3 mb-3 font-weight-normal" style={{textAlign:'left'}}>Sign in</h1>

@@ -12,7 +12,7 @@ const UserSchema = new Schema({
   recover_password_token: String,
   signup_token_timestamp: String,
   recover_password_token_timestamp: String,
-//  access_token: String,
+  refresh_token: String,
 //  access_token_created: String,
 //  token: Object,
   tmp_password: String

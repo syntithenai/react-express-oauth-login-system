@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './App.css';
-
-import LoginSystem from 'react-express-oauth-login-system'
+//,getAxiosClient
+import LoginSystem,{getCookie,getAxiosClient}  from 'react-express-oauth-login-system'
 
 import {BrowserRouter as Router,Route} from 'react-router-dom'
 import PropsRoute from './PropsRoute'
@@ -10,7 +10,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 //let config = require('./config');
 
-
+var md5 = require('md5');
 
 class App extends Component {
 	
@@ -32,7 +32,7 @@ class App extends Component {
   }	
 	
   onLogin(user,props) {
-	 // console.log(['APP LOGIN',user,props])
+	  console.log(['APP LOGIN',user,props])
 	  this.setUser(user);
 	  props.history.push("/login/profile");		
   }
@@ -54,14 +54,14 @@ class App extends Component {
   getList() {
 	  let that = this;
 	  console.log('getliste')
-	  fetch('https://localhost/api/getlist', {
-		  method: 'GET',
+	  let client = getAxiosClient()
+	  client.get('/api/getlist', {
 		  headers: {
 			'Content-Type': 'application/json',
-		    'Authorization': 'Bearer '+that.state.user.token.access_token
+		    'Authorization': 'Bearer '+getCookie('access-token')
           },
 		}).then(function(res) {
-			return res.json();  
+			return res.data  
 		}).then(function(data) {
 			console.log(['GOT LIST',data]);
 			that.setState({list:data})
@@ -69,22 +69,31 @@ class App extends Component {
 			console.log(err);
 		});	
   }
-	
+	      
   render() {
     const RedirectToLogin = function(props) {
 		props.history.push("/login");
 		return <b></b>;
 	};
-	
-	return (
+	let csrfToken = getCookie('csrf-token')
+	// use a hash of the access token to avoid exposing it in a URL
+	let mediaToken = getCookie('access-token') ? md5(getCookie('access-token')) : '';
+	let protectedMediaImage = '/api/protectedimage?_csrf='+csrfToken+'&_media='+mediaToken
+	let csrfMediaImage = '/api/csrfimage?_csrf='+csrfToken
+	  
+      return (
       <div className="App">
         {this.state.waiting && <div className="overlay" onClick={this.stopWaiting} ><img alt="loading" src='/loading.gif' /> </div>}
         <header className="App-header">
            {this.state.user && this.state.user.token && <div><button onClick={this.getList} >GET LIST</button> {JSON.stringify(this.state.list)}</div>}
-           <Router><div style={{width:'70%'}}>
+           <Router>
+           <div style={{width:'70%'}}>
+       CSRF <img style={{height: '30px'}} src={csrfMediaImage} alt='csrf' />
+       <img style={{height: '30px'}}  src={protectedMediaImage} alt='Not logged in' />
            <Route  exact={true} path='/' component={RedirectToLogin} />
-		   <PropsRoute path='/' component={LoginSystem}  authServer={'https://localhost/api/login'} setUser={this.setUser} onLogin={this.onLogin} onLogout={this.onLogout} startWaiting={this.startWaiting} stopWaiting={this.stopWaiting} loginButtons={['google','twitter','facebook','github']} />
-        </div></Router>
+		   <PropsRoute path='/' component={LoginSystem}  authServer={'/api/login'} setUser={this.setUser} onLogin={this.onLogin} onLogout={this.onLogout} startWaiting={this.startWaiting} stopWaiting={this.stopWaiting} loginButtons={['google','twitter','facebook','github']} />
+        </div>
+        </Router>
         </header>
       </div>
     );

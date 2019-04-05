@@ -36,7 +36,7 @@ export default  class ForgotPassword extends Component {
           {this.props.warning_message && <div className='warning-message'  >{this.props.warning_message}</div>}
                             
           <fieldset className='col-12' >
-				<label htmlFor="email" className='row'>Email </label><input  autocomplete='signin_email'  id="email" type='email' name='email' onChange={this.change} />
+				<label htmlFor="email" className='row'>Email </label><input  autoComplete='signin_email'  id="email" type='email' name='email' onChange={this.change} />
 				<label htmlFor="password" className='row'>New Password</label> <input  autoComplete="off"  id="password" type='password' name='password' onChange={this.change} />
 				<label htmlFor="password2" className='row'>Repeat New Password</label><input  autoComplete="off"  id="password2" type='password' name='password2' onChange={this.change} />
 				<br/>

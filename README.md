@@ -14,7 +14,8 @@ In the box
 - React components to implement a login and registration system.
 - Express routes to support login, registration, password recovery, oauth authorization and oauth login from various providers using passport.js
 - Express routes to implement an oauth2 server using the oauth library and the mongodb integration from https://github.com/slavab89/oauth2-server-example-mongodb
-
+- Configurable CSRF checks for appropriates routes while leaving oauth routes and passport callback routes exposed.
+- Example web application.
 
 ## Quickstart
 
@@ -172,4 +173,14 @@ mongo browserexample
 > db.oauthclients.find()
 { "_id" : ObjectId("5c859a7a64997a72a107065b"), "clientId" : "test", "clientSecret" : "testpass", "name" : "Test Client", "website_url" : "https://localhost", "privacy_url" : "https://localhost/privacy", "grants" : [ "authorization_code", "password", "refresh_token", "client_credentials" ], "redirectUris" : [ ], "__v" : 0 }
 ```
+
+
+
+## Cross Site Request Forgery (CSRF) Protection
+
+The example provides code to protect against Cross Site Request Forgery by
+- setting a cookie csrf-token when the react app loads  (see routes/loginsystem.js)
+- ensuring that the ajax library used in React sets the header x-csrf-token to the value of the cookie  (see src/LoginSystem.js)
+- checking that the cookie and the header match for routes that need protecting. Externally available API endpoints should not use CSRF checking.
+
 

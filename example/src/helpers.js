@@ -14,6 +14,7 @@ function getCookie(name) {
 
 // use a hash of the access token to avoid exposing it in a URL	
 function getMediaQueryString() {
+	let csrfToken = getCookie('csrf-token')
 	let mediaToken = getCookie('access-token') ? md5(getCookie('access-token')) : '';
 	return '_csrf='+csrfToken+'&_media='+mediaToken
 }

@@ -41,59 +41,6 @@ export default  class LoginSystem extends Component {
         let that=this;
  			// ensure xsrf header in all ajax requests
 			this.axiosClient = getAxiosClient();
-
-			//// login using request parameter code 
-			//function loginWithCode(code) {
-				//return new Promise(function(resolve,reject) {
-					//if (code && code.length > 0 && code !== undefined && code !== 'undefined'  && code !== 'null') {
-						//console.log(['LoginByCode',code])
-						//that.axiosClient({
-						  //url: that.props.authServer+'/me',
-						  
-						  //method: 'get',
-						//}).then(function(res) {
-							//return res.data;  
-						//}).then(function(user) {
-							//console.log(['lOGINbYcODE got res',user]);
-							//that.setUser(user);
-							//console.log(['LoginByCode check user auth',user])
-							//let authRequest = localStorage.getItem('auth_request');
-							//if (user && user.token && user.token.access_token && user.token.access_token.length > 0 ) {
-								//if (authRequest) {
-									//// using the showButton property, a button will be shown instead of immediate automatic redirect
-									//if (that.props.showButton) {
-										//that.setState({authRequest:authRequest});
-									//} else {
-										//// if there is an auth request pending, jump to that
-										//that.props.history.push('/login/oauth');
-									//}
-								//}
-							//} 
-							////else {
-								////that.props.history.push('/login/login');
-							////}
-						//}).catch(function(err) {
-							//console.log(err);
-							//reject();
-						//});				
-					//}
-				//});
-			//}
-			//let code = null;
-			//if (that.props.location.search.startsWith('?code=')) {
-				//code = that.props.location.search.slice(6);
-				//if (code) {
-					//loginWithCode(code)
-				//} 
-			//} else {
-				//try {
-				  //let token = JSON.parse(localStorage.getItem('token'));
-				  //if (token && token !== undefined) {
-					  //that.refreshLogin(token);
-				  //}
-				//} catch (e) {
-				//}
-			//}
 	};
    
     saveUser(user) {
@@ -105,7 +52,7 @@ export default  class LoginSystem extends Component {
           headers: {
             'Authorization': 'Bearer '+user.token.access_token
           },
-          data: JSON.stringify(user)
+          data: user
         }).then(function(res) {
             if (that.props.stopWaiting) that.props.stopWaiting();
             return res.data;  
@@ -118,7 +65,7 @@ export default  class LoginSystem extends Component {
     };
     
     submitSignIn(user,pass) {
-		console.log('SUBMITSIGNIN')
+		console.log(['SUBMITSIGNIN',user,pass])
         var that=this;
         this.submitWarning('');
         if (this.props.startWaiting) this.props.startWaiting();
@@ -126,10 +73,10 @@ export default  class LoginSystem extends Component {
            that.axiosClient( {
               url: that.props.authServer+'/signin',
               method: 'post',
-              data: JSON.stringify({
+              data: {
                 username: user,
                 password: pass
-              })
+              }
             })
             .then(this.checkStatus)
             .then(function(res) {
@@ -178,13 +125,13 @@ export default  class LoginSystem extends Component {
           headers: {
             'Content-Type': 'application/json'
           },
-          data: JSON.stringify({
+          data: {
             name: name,
             avatar: avatar,
             username: email,
             password: password,
             password2: password2,
-          })
+          }
         })
         .then(this.checkStatus)
         .then(function(res) {
@@ -212,12 +159,12 @@ export default  class LoginSystem extends Component {
           headers: {
             'Content-Type': 'application/json'
           },
-          data: JSON.stringify({
+          data: {
             email: email,
             password: password,
             password2: password2,
             code: Math.random().toString(36).replace(/[^a-z]+/g, '')
-          })
+          }
         }).then(this.checkStatus)
       .then(function(res) {
             return res.data;  

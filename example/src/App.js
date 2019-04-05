@@ -3,7 +3,7 @@ import './App.css';
 //,getAxiosClient
 import LoginSystem,{getCookie,getAxiosClient}  from 'react-express-oauth-login-system'
 
-import {BrowserRouter as Router,Route} from 'react-router-dom'
+import {BrowserRouter as Router,Route,Link} from 'react-router-dom'
 import PropsRoute from './PropsRoute'
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -27,6 +27,7 @@ class App extends Component {
 	  
   }	
 	
+
   setUser(user) {
 	  this.setState({user:user});	  
   }	
@@ -90,6 +91,8 @@ class App extends Component {
            <div style={{width:'70%'}}>
        CSRF <img style={{height: '30px'}} src={csrfMediaImage} alt='csrf' />
        <img style={{height: '30px'}}  src={protectedMediaImage} alt='Not logged in' />
+        <Link to="/login/login" style={{clear:'both',display:'inline'}} ><div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Login</div></Link>
+                
        <hr style={{backgroundColor:'white'}}/>
            <Route  exact={true} path='/' component={RedirectToLogin} />
 		   <PropsRoute path='/' component={LoginSystem}  authServer={'/api/login'} setUser={this.setUser} onLogin={this.onLogin} onLogout={this.onLogout} startWaiting={this.startWaiting} stopWaiting={this.stopWaiting} loginButtons={['google','twitter','facebook','github']} />

@@ -57,10 +57,11 @@ export default class Profile extends Component {
     render() {
 		if (this.props.user) {
            return (
-            <form method="POST" onSubmit={this.saveUser} autoComplete="false" >
+            <div> {this.props.isLoggedIn() && <Link to="/login/logout"   ><button className='btn btn-danger' style={{padding:'0.5em',margin:'0.5em',float:'right'}} ><LogoutButton  /> Logout</button></Link>}
+                
+                <form method="POST" onSubmit={this.saveUser} autoComplete="false" >
                     <div className="form-group" style={{width: '70%',marginLeft:'4em'}} >
-                               {this.props.isLoggedIn() && <Link to="/login/logout"   ><button className='btn btn-danger' style={{padding:'0.5em',margin:'0.5em',float:'right'}} ><LogoutButton  /> Logout</button></Link>}
-                 <Link to="/login/login" style={{clear:'both',display:'inline'}} ><div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Login</div></Link>
+                
                             <h3  style={{textAlign: 'left'}} >Profile</h3>
                             {this.props.warning_message && <div className='warning-message'  >{this.props.warning_message}</div>}
          
@@ -78,7 +79,7 @@ export default class Profile extends Component {
                                 <button  className='btn btn-lg btn-success btn-block'><SaveButton/> Save</button>
                    
                 </div>
-                </form>
+                </form></div>
                     
             )
         } else return '';

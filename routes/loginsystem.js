@@ -506,8 +506,8 @@ var utils = require("./utils")
 	 * SIGN IN
 	 ********************/
 	router.post('/signin',csrfCheck, function(req, res) {
-		//console.log('signin')
-		//console.log(req.body);
+		console.log('signin')
+		console.log(req.body);
 		if (req.body.username && req.body.username.length > 0 && req.body.password && req.body.password.length>0) {
 				//console.log('really signin')
 				database.User.findOne({username:req.body.username.trim(),password:req.body.password.trim()})

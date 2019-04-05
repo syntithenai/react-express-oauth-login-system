@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import './App.css';
 //,getAxiosClient
-import LoginSystem,{getCookie,getAxiosClient}  from 'react-express-oauth-login-system'
+import LoginSystem  from 'react-express-oauth-login-system'
+import {getCookie,getAxiosClient,getMediaQueryString,getCsrfQueryString} from './helpers';
 
 import {BrowserRouter as Router,Route,Link} from 'react-router-dom'
 import PropsRoute from './PropsRoute'

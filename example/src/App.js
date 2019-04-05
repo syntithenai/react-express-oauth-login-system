@@ -54,12 +54,12 @@ class App extends Component {
   getList() {
 	  let that = this;
 	  console.log('getliste')
+	  // use client factory for auto headers - csrf and auth
 	  let client = getAxiosClient()
 	  client.get('/api/getlist', {
 		  headers: {
 			'Content-Type': 'application/json',
-		    'Authorization': 'Bearer '+getCookie('access-token')
-          },
+		  },
 		}).then(function(res) {
 			return res.data  
 		}).then(function(data) {
@@ -90,6 +90,7 @@ class App extends Component {
            <div style={{width:'70%'}}>
        CSRF <img style={{height: '30px'}} src={csrfMediaImage} alt='csrf' />
        <img style={{height: '30px'}}  src={protectedMediaImage} alt='Not logged in' />
+       <hr style={{backgroundColor:'white'}}/>
            <Route  exact={true} path='/' component={RedirectToLogin} />
 		   <PropsRoute path='/' component={LoginSystem}  authServer={'/api/login'} setUser={this.setUser} onLogin={this.onLogin} onLogout={this.onLogout} startWaiting={this.startWaiting} stopWaiting={this.stopWaiting} loginButtons={['google','twitter','facebook','github']} />
         </div>

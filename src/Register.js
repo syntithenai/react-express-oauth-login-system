@@ -29,8 +29,8 @@ export default class Register extends Component {
     
     
     submitSignUp(e) {
-       // console.log('SSU');
-       // console.log(this.props);
+        console.log('SSU');
+        console.log(this.state);
         e.preventDefault();
         this.props.submitSignUp(this.state.name,this.state.avatar,this.state.email,this.state.password,this.state.password2);
         //this.setState('');

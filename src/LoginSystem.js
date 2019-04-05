@@ -101,11 +101,11 @@ export default  class LoginSystem extends Component {
          if (this.props.startWaiting) this.props.startWaiting();
          return that.axiosClient( {
           url: that.props.authServer+'/saveuser',
-          method: 'GET',
+          method: 'post',
           headers: {
             'Authorization': 'Bearer '+user.token.access_token
           },
-          body: JSON.stringify(user)
+          data: JSON.stringify(user)
         }).then(function(res) {
             if (that.props.stopWaiting) that.props.stopWaiting();
             return res.data;  
@@ -125,8 +125,8 @@ export default  class LoginSystem extends Component {
         setTimeout(function() {
            that.axiosClient( {
               url: that.props.authServer+'/signin',
-              method: 'POST',
-              body: JSON.stringify({
+              method: 'post',
+              data: JSON.stringify({
                 username: user,
                 password: pass
               })
@@ -168,6 +168,7 @@ export default  class LoginSystem extends Component {
     };
     
     submitSignUp(name,avatar,email,password,password2) {
+		console.log(['SUBMIT SIGNUP',name,avatar,email,password,password2])
        var that=this;
        this.submitWarning('');
        if (this.props.startWaiting) this.props.startWaiting();
@@ -177,7 +178,7 @@ export default  class LoginSystem extends Component {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
+          data: JSON.stringify({
             name: name,
             avatar: avatar,
             username: email,
@@ -211,7 +212,7 @@ export default  class LoginSystem extends Component {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
+          data: JSON.stringify({
             email: email,
             password: password,
             password2: password2,
@@ -246,7 +247,7 @@ export default  class LoginSystem extends Component {
 		//resolve();
 			if (token) {
 				that.axiosClient = getAxiosClient();
-				that.axiosClient.get( that.props.authServer+'/me',{
+				that.axiosClient.post( that.props.authServer+'/me',{
 				  headers: {
 					'Authorization': 'Bearer '+token
 				  }
@@ -336,7 +337,7 @@ export default  class LoginSystem extends Component {
 	  this.setState({user:null});
 	  that.axiosClient( {
 		  url: that.props.authServer+'/logout',
-		  method: 'get',
+		  method: 'post',
 		  headers: {
 			'Content-Type': 'application/json',
 		  },

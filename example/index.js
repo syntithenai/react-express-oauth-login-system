@@ -30,9 +30,12 @@ app.use(bodyParser.json());
 //app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 //app.use(flash());
+
 //app.use(session({ secret: 'board GOAT' , cookie: { secure: true }}));
 //app.use(passport.initialize());
 //app.use(passport.session());
+
+// logging
 app.use(function(req,res,next) {
 	console.log(['URL',req.url]);
 //	,req.headers,req.cookies

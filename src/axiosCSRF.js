@@ -11,6 +11,19 @@ function getCookie(name) {
 	return null;
 }
 
+// use a hash of the access token to avoid exposing it in a URL	
+function getMediaQueryString() {
+	let mediaToken = getCookie('access-token') ? md5(getCookie('access-token')) : '';
+	return '_csrf='+csrfToken+'&_media='+mediaToken
+}
+
+function getCsrfQueryString() {
+	let csrfToken = getCookie('csrf-token')
+	return '_csrf='+csrfToken
+	
+}
+
+
 
 function getAxiosClient()	{
 	
@@ -19,7 +32,13 @@ function getAxiosClient()	{
 //			console.log(['cookieas',cookie,document.cookie])
 	if (cookie && cookie.trim().length > 0) {
 		axiosOptions.headers = {'x-csrf-token': cookie}
+		// add auth headers if token available in cookie
+		let accessCookie = getCookie('access-token');
+		if (accessCookie && accessCookie.length > 0)  axiosOptions.headers['Authorization'] = 'Bearer '+accessCookie
+          
 	}
 	return axios.create(axiosOptions);
 }
-export {getCookie,getAxiosClient}
+
+
+export {getCookie,getAxiosClient,getMediaQueryString,getCsrfQueryString}

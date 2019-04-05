@@ -15,7 +15,11 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 
 let config = global.gConfig;
 var router = express.Router();
-	
+var session = require('express-session')
+
+// session required for twitter login
+router.use(session({ secret: 'board GOAT'}));
+
 var utils = require("./utils")
 	/**********************************
 	 * INITIALISE MONGOOSE AND RAW MONGODB CONNECTIONS
@@ -468,8 +472,10 @@ var utils = require("./utils")
 							user.signup_token = undefined;
 							user.signup_token_timestamp =  undefined;
 							user.tmp_password = undefined;
-							loginSuccessJson(user,res,function(err,user) {
-								res.redirect('/login/success');
+							user.save().then(function() {
+								loginSuccessJson(user,res,function(err,user) {
+									res.redirect('/login/success');
+								});
 							});
 					   } else {
 						   res.send('token timeout. restart request')
@@ -491,7 +497,7 @@ var utils = require("./utils")
 	/********************
 	 * SIGN OUT
 	 ********************/
-	router.get('/logout', function(req, res) {
+	router.post('/logout', function(req, res) {
 		res.clearCookie('access-token');
 		res.send({})
 	});
@@ -549,7 +555,7 @@ var utils = require("./utils")
 						   var mailTemplate = config.recoveryEmailTemplate && config.recoveryEmailTemplate.length > 0 ? config.recoveryEmailTemplate : `<div>Hi {{name}}! <br/>
 
 	To confirm your password recovery of your account , please click the link below.<br/>
-recover_password_token
+
 	<a href="{{link}}" >Confirm your password update</a><br/>
 
 	If you did not recently request a password recovery for your account, please ignore this email.<br/><br/>
@@ -642,7 +648,7 @@ recover_password_token
 	/********************
 	 * Request an updated access token 
 	 ********************/
-	router.get('/me',csrfCheck,oauthMiddlewares.authenticate,function(req,res) {
+	router.post('/me',csrfCheck,oauthMiddlewares.authenticate,function(req,res) {
 		if (req.user && req.user._id) {
 			loginSuccessJson(req.user.user,res,function(err,finalUser) {
 				if (err) console.log(err);
@@ -655,7 +661,7 @@ recover_password_token
 	/********************
 	 * SAVE USER, oauthMiddlewares.authenticate
 	 ********************/
-	router.use('/saveuser',csrfCheck,oauthMiddlewares.authenticate, function(req, res) {
+	router.post('/saveuser',csrfCheck,oauthMiddlewares.authenticate, function(req, res) {
 		//console.log(['SAVE USER',req.body]);
 		if (req.body._id && req.body._id.length > 0) {
 			if (req.body.password && req.body.password.length > 0 && req.body.password2 && req.body.password2.length > 0 && req.body.password2 != req.body.password)  {
@@ -746,7 +752,7 @@ recover_password_token
 	function sendWelcomeEmail(token,name,username) {
 		var link = config.authServer + '/doconfirm?code='+token;
 		var mailTemplate = config.signupEmailTemplate && config.signupEmailTemplate.length > 0  ? config.signupEmailTemplate : `<div>Hi {{name}}! <br/>
-
+GorgeousAnahi
 				Welcome,<br/>
 
 				To confirm your registration, please click the link below.<br/>

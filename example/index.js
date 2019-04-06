@@ -9,31 +9,19 @@ const path = require('path');
 const fs = require('fs'),
     http = require('http'),
     https = require('https')
-//const passport = require("passport");
-//var csrf = require('csurf')
 
 let app = express();
 var flash = require('connect-flash');
 var md5 = require('md5');
 //var authenticate = require('react-express-oauth-login-system/authenticate');
 var authenticate = require('../authenticate');
-//var mediaTokens = require('../mediaTokens');
-
 // csrf  middleware
 var csrf = require('../csrf');	
 
-
-//var csrfProtection = csrf({ cookie: {key:'XSRF-TOKEN',ignoreMethods:['HEAD', 'OPTIONS']} })
-//var parseForm = bodyParser.urlencoded({ extended: false })
- 
 app.use(bodyParser.json());
-//app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-//app.use(flash());
-
-//app.use(session({ secret: 'board GOAT' , cookie: { secure: true }}));
-//app.use(passport.initialize());
-//app.use(passport.session());
+// session required for twitter login
+app.use(session({ secret: config.sessionSalt ? config.sessionSalt : 'board GOAT boring do boat'}));
 
 // logging
 app.use(function(req,res,next) {
@@ -51,7 +39,6 @@ var router = express.Router();
 var loginRouter = require('../routes/loginsystem.js');
 
 //console.log(['INIT EXAMPLE login router',loginRouter])
-// CSRF checks can be enabled using config for selected login routes 
 router.use('/api/login',loginRouter);
 
 function checkMedia(req,res,next) {
@@ -94,15 +81,6 @@ app.use('/',csrf.setToken,proxy({ target: config.reactServer }))
 app.use(function (err, req, res, next) {
 	console.log(err);
 });
-
- //(req,res,next) {
-	//console.log('proxy');
-	//proxyServer(req,res,next)
-
-//});
-// production - Serve the static files from the React app
-//app.use(express.static(path.join(__dirname, 'client/build')));
-
 
 // SSL
 // allow self generated certs

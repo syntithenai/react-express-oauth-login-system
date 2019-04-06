@@ -31,7 +31,6 @@ function getAxiosClient()	{
 	
 	let axiosOptions={};
 	let cookie = getCookie('csrf-token');
-//			console.log(['cookieas',cookie,document.cookie])
 	if (cookie && cookie.trim().length > 0) {
 		// csrf header
 		axiosOptions.headers = {'x-csrf-token': cookie}

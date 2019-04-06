@@ -1,6 +1,5 @@
 var express = require('express');
 var fetch = require('node-fetch');
-//var axios = require('axios')
 const mustache = require('mustache');
 const crypto = require("crypto"); 
 var faker = require('faker');
@@ -15,18 +14,16 @@ const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
 
 let config = global.gConfig;
 var router = express.Router();
-var session = require('express-session')
 
-// session required for twitter login
-router.use(session({ secret: 'board GOAT'}));
+/******************************************************
+ * This module exports a router that includes routes for a login system and oauth server
+ * 
+ *****************************************************/
 
 var utils = require("./utils")
-	/**********************************
-	 * INITIALISE MONGOOSE AND RAW MONGODB CONNECTIONS
-	 *********************************/
+	// INITIALISE MONGOOSE AND RAW MONGODB CONNECTIONS
 	var ObjectId = require('mongodb').ObjectID;
 
-	if (!config.userFields || config.userFields.length === 0) config.userFields=['name','avatar','username','token','password','tmp_password']
 	//const User F= require('./User');
 
 	mongoose.connect(config.databaseConnection + config.database,{useMongoClient: true}).then(() => {
@@ -84,19 +81,10 @@ var utils = require("./utils")
 	router.post('/authorize', oauthMiddlewares.authorize);
 	router.get('/authorize',function(req,res) {
 		//console.log(['AUTHORIZE',req]);
-		
 	})
-	//router.post('/authorize', oauthMiddlewares.authorize);
-	//router.get('/secure', oauthMiddlewares.authenticate, (req, res) => {
-	//res.json({ message: 'Secure data' });
-	//});
+	
 
-
-
-	/********************
-	 * CONFIGURE PASSPORT
-	 ********************/
-
+	// CONFIGURE AND INITIALISE PASSPORT 
 	var passport = require('passport')
 
 	passport.serializeUser(function(user, done) {
@@ -217,8 +205,15 @@ var utils = require("./utils")
 		}
 	  }
 	));
+	
+	
+	router.use(passport.initialize());
+	// END CONFIGURE AND INITIALISE PASSPORT
+	
+	
+	
 
-
+	// CALLBACK WHEN USER IS IDENTIFIED TO ADD TOKEN AND SET ACCESS COOKIE
 	function loginSuccessJson(user,res,cb) {
 		console.log(['SAVE USER',user]);
 		requestToken(user).then(function(userAndToken) {
@@ -239,6 +234,7 @@ var utils = require("./utils")
 		  });
 	}
 
+	// CALLBACK TO SUPPORT PASSPORT STRATEGIES
 	function findOrCreateUser(name,email,cb) {
 		if (email && email.length > 0) {
 			if (!config.allowedUsers || config.allowedUsers.length === 0 ||  (config.allowedUsers.indexOf(req.body.username.toLowerCase().trim()) >= 0 )) {
@@ -278,9 +274,9 @@ var utils = require("./utils")
 		return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 	}
 	
+	// MAKE A USER/PASS REQUEST FOR A TOKEN AND RESOLVE THE EXTENDED USER 
 	function requestToken(user) {
 		 return new Promise(function(resolve,reject) {
-			// console.log(['REQUEST TOKEN',user])
 			 var params={
 				username: user.username,
 				password: user.password,
@@ -299,10 +295,8 @@ var utils = require("./utils")
 				}).then(function(response) {
 					return response.json();
 				}).then(function(token) {
-					console.log(['got token',token])
 					if (token && token.access_token && token.access_token.length > 0) {
 						user.token = token;
-						console.log(['got user and token',user])
 						resolve(user);
 					} else {
 						console.log(['ERROR REQUESTING TOKEN',token])
@@ -315,10 +309,13 @@ var utils = require("./utils")
 		});
 	}
 	
+	
+	// SANITIZE USER TO BE DELIVERED TO THE CLIENT, ONLY ALLOWED FIELDS FROM config.userFields and no password fields
 	function sanitizeUser(user) {
 		let item={};
 		//console.log(['sanitize user',config.userFields]);
-		
+		if (!config.userFields || config.userFields.length === 0) config.userFields=['name','avatar','username','token','password','tmp_password']
+
 		config.userFields.map(function(fieldName) {
 			let key = fieldName.trim();
 			item[key] = typeof user[key] ==="string" ? user[key].trim() : '';
@@ -328,9 +325,12 @@ var utils = require("./utils")
 		 delete item.tmp_password;
 		 return item;
 	}
-
-	router.use(passport.initialize());
-
+	
+	
+	/*********************************
+	 * API ROUTES
+	 *********************************/
+	
 	router.use('/login',csrfCheck,function(req, res, next) {	  //  console.log('do login NOW')
 		passport.authenticate('local', function(err, user, info) {
 			loginSuccessJson(user,res,function(err,finalUser) {
@@ -413,38 +413,35 @@ var utils = require("./utils")
 				if (req.body.password2 != req.body.password)  {
 					res.send({message:'Passwords do not match.'});
 				} else {
-							database.User.findOne({username:req.body.username.trim()}, function(err, ditem) {
-								if (err) console.log(err)
-								if (ditem) {
-									res.send({'warning':'There is already a user registered with the email address '+req.body.username});
-								} else {
-									let item = {}
-									config.userFields.map(function(fieldName) {
-										let key = fieldName.trim();
-										item[key] = req.body[key] ? req.body[key].trim() : '';
-									});
-									item.password = req.body.password.trim();
-									database.User.findOne({avatar:{$eq:req.body.avatar.trim()}}).then(function(avUser) {
-											if (avUser!=null && avUser.length>0) {
-												res.send({message:'Avatar name is already taken, try something different.'});
-											} else {
-												item.signup_token =  generateToken();
-												item.signup_token_timestamp =  new Date().getTime();
-												
-												item.tmp_password=item.password;
-												item.password='';
-												item.password2='';
-												let user = new database.User(item)
-												
-												//User.update({'_id': ObjectId(item._id)},{$set:updatedItem})
-												user.save().then(function(result2) {
-													res.send(sendWelcomeEmail(item.signup_token,req.body.name,item.username));
-												});                                        
-											}
-									});
-								
-								}
+					database.User.findOne({username:req.body.username.trim()}, function(err, ditem) {
+						if (err) console.log(err)
+						if (ditem) {
+							res.send({'warning':'There is already a user registered with the email address '+req.body.username});
+						} else {
+							let item = {}
+							config.userFields.map(function(fieldName) {
+								let key = fieldName.trim();
+								item[key] = req.body[key] ? req.body[key].trim() : '';
 							});
+							item.password = req.body.password.trim();
+							database.User.findOne({avatar:{$eq:req.body.avatar.trim()}}).then(function(avUser) {
+									if (avUser!=null && avUser.length>0) {
+										res.send({message:'Avatar name is already taken, try something different.'});
+									} else {
+										item.signup_token =  generateToken();
+										item.signup_token_timestamp =  new Date().getTime();
+										
+										item.tmp_password=item.password;
+										item.password='';
+										item.password2='';
+										let user = new database.User(item)
+										user.save().then(function(result2) {
+											res.send(sendWelcomeEmail(item.signup_token,req.body.name,item.username));
+										});                                        
+									}
+							});
+						}
+					});
 				}
 			} else {
 				res.send({message:'Sorry. You are not allowed to register and login.'});
@@ -464,7 +461,6 @@ var utils = require("./utils")
 		    database.User.findOne({ signup_token:params.code.trim()})
 			.then(function(user)  {
 					if (user != null) {
-						console.log(['DO CONFIRM',parseInt(user.signup_token_timestamp,10), new Date().getTime() - parseInt(user.recover_password_token_timestamp,10)])
 						if (new Date().getTime() - parseInt(user.signup_token_timestamp,10) < 600000) {
 							
 							var userId = user._id;
@@ -506,13 +502,9 @@ var utils = require("./utils")
 	 * SIGN IN
 	 ********************/
 	router.post('/signin',csrfCheck, function(req, res) {
-		console.log('signin')
-		console.log(req.body);
 		if (req.body.username && req.body.username.length > 0 && req.body.password && req.body.password.length>0) {
-				//console.log('really signin')
 				database.User.findOne({username:req.body.username.trim(),password:req.body.password.trim()})
 				.then(function(user)  {
-					//console.log('signin user',user)
 						if (user != null) {
 						   loginSuccessJson(user,res,function(err,finalUser) {
 								if (err) console.log(err);
@@ -612,7 +604,7 @@ var utils = require("./utils")
 	})
 
 
-
+	// MAKE OAUTH REFRESH REQUEST
 	//function requestRefreshToken(refreshToken) {
 		 //return new Promise(function(resolve,reject) {
 			 //var params={
@@ -646,7 +638,7 @@ var utils = require("./utils")
 	
 
 	/********************
-	 * Request an updated access token 
+	 * Update the access token and return the current user(+token) as JSON
 	 ********************/
 	router.post('/me',csrfCheck,oauthMiddlewares.authenticate,function(req,res) {
 		if (req.user && req.user._id) {
@@ -662,14 +654,12 @@ var utils = require("./utils")
 	 * SAVE USER, oauthMiddlewares.authenticate
 	 ********************/
 	router.post('/saveuser',csrfCheck,oauthMiddlewares.authenticate, function(req, res) {
-		//console.log(['SAVE USER',req.body]);
 		if (req.body._id && req.body._id.length > 0) {
 			if (req.body.password && req.body.password.length > 0 && req.body.password2 && req.body.password2.length > 0 && req.body.password2 != req.body.password)  {
 				res.send({warning_message:'Passwords do not match'});
 			} else {
 				database.User.findOne(ObjectId(req.body._id), function(err, user) {
 				  if (err) {
-					  //console.log(err);
 					  res.send({warning_message:err});
 				  } else if (user!=null) {
 					 config.userFields.map(function(fieldName) {
@@ -690,7 +680,6 @@ var utils = require("./utils")
 							  if (avUser!=null) {
 								  res.send({warning_message:"Avatar name is already taken, try something different."});
 							  } else {
-								  //database.User.update({'_id': ObjectId(user._id)},{$set:item})
 								  user.save().then(function(xres) {
 									  user.warning_message="Saved changes";
 									  res.send(user);
@@ -698,7 +687,6 @@ var utils = require("./utils")
 							  }
 						  });
 					  } else {
-						//database.User.update({'_id': ObjectId(item._id)},{$set:user})
 						user.save().then(function(xres) {
 							  user.warning_message="Saved changes";
 							  res.send(user);
@@ -714,9 +702,7 @@ var utils = require("./utils")
 		}
 	});
 
-	router.get('/oauthclient', csrfCheck,oauthMiddlewares.authenticate,function(req,res) {
-		//  {access_token_created :{$gt: tokenCutoff} }
-		//User.findOne({$and:[ {access_token: {$eq:token}}] }, function (err, user) {
+	router.get('/oauthclient',function(req,res) {
 		let clientId = req.query.clientId;
 		database.OAuthClient.findOne({clientId:clientId}, function (err, client) {
 		    if (err) { 
@@ -752,7 +738,7 @@ var utils = require("./utils")
 	function sendWelcomeEmail(token,name,username) {
 		var link = config.authServer + '/doconfirm?code='+token;
 		var mailTemplate = config.signupEmailTemplate && config.signupEmailTemplate.length > 0  ? config.signupEmailTemplate : `<div>Hi {{name}}! <br/>
-GorgeousAnahi
+
 				Welcome,<br/>
 
 				To confirm your registration, please click the link below.<br/>
@@ -772,5 +758,5 @@ GorgeousAnahi
 		
 	}
 
-	module.exports =  router;
+module.exports =  router;
 

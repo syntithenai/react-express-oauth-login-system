@@ -1,4 +1,5 @@
 module.exports = {
+	// Enable CSRF checks for selected login routes 
 	csrfCheck: true,
     
     // EMAIL TRANSPORT

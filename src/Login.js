@@ -1,4 +1,4 @@
-/* eslint-disable */ 
+/* edslint-disable */ 
 
 import React, { Component } from 'react';
 import {BrowserRouter as Router,Route,Link,Switch,Redirect} from 'react-router-dom'
@@ -25,17 +25,7 @@ export default  class Login extends Component {
         return true;
     };
      
-    componentDidMount() {
-        //if (this.props.isLoggedIn()) {
-	         //this.props.history.push("/login/profile");
-       //}
-    }; 
-    componentDidUpdate() {
-        //if (this.props.isLoggedIn()) {
-	       //this.props.history.push("/login/profile");
-       //}
-    };
-     
+
     render() {
 		let that = this;
 		let loginButtonsEnabled = this.props.loginButtons && this.props.loginButtons.length > 0 ? this.props.loginButtons : []

@@ -10,9 +10,7 @@ import Register from './Register'
 import LoginRedirect from './LoginRedirect'
 import ForgotPassword from './ForgotPassword'
 import OAuth from './OAuth'
-import {getCookie,getAxiosClient} from './axiosCSRF'  
-
-//var config=require('./config')
+import {getCookie,getAxiosClient} from './helpers'  
 
 export default  class LoginSystem extends Component {
     
@@ -65,8 +63,7 @@ export default  class LoginSystem extends Component {
     };
     
     submitSignIn(user,pass) {
-		console.log(['SUBMITSIGNIN',user,pass])
-        var that=this;
+		var that=this;
         this.submitWarning('');
         if (this.props.startWaiting) this.props.startWaiting();
         setTimeout(function() {
@@ -87,10 +84,8 @@ export default  class LoginSystem extends Component {
                 if (user.message) {
                     that.submitWarning(user.message);
                 } else {
-					console.log(['SUBMIT SIGNIN',user])
 					if (user && user.token && user.token.access_token && user.token.access_token.length > 0 ) {
 						let authRequest = localStorage.getItem('auth_request');
-						console.log(['AUTH REQ',authRequest])
 						if (authRequest) {
 							// using the showButton property, a button will be shown instead of immediate automatic redirect
 							if (that.props.showButton) {
@@ -102,7 +97,6 @@ export default  class LoginSystem extends Component {
 							}
 						} else {
 							that.onLogin(user,that.props);
-						//	that.props.history.push('/login/profile');
 						}
 					} 
 					
@@ -115,8 +109,7 @@ export default  class LoginSystem extends Component {
     };
     
     submitSignUp(name,avatar,email,password,password2) {
-		console.log(['SUBMIT SIGNUP',name,avatar,email,password,password2])
-       var that=this;
+	   var that=this;
        this.submitWarning('');
        if (this.props.startWaiting) this.props.startWaiting();
        that.axiosClient( {
@@ -151,7 +144,6 @@ export default  class LoginSystem extends Component {
  
     recoverPassword(email,password,password2) {
         let that = this;
-       console.log(['recover',email,password,password2]);
         if (this.props.startWaiting) this.props.startWaiting();
        that.axiosClient({
           url: that.props.authServer+'/recover',
@@ -186,12 +178,8 @@ export default  class LoginSystem extends Component {
   
  
 	refreshLogin (token) {
-		console.log('refresh login')
 		let that = this;
 		return new Promise(function(resolve,reject) {
-			console.log(['refresh login sp',that])
-		//console.log('refresh login token '+token)
-		//resolve();
 			if (token) {
 				that.axiosClient = getAxiosClient();
 				that.axiosClient.post( that.props.authServer+'/me',{
@@ -200,11 +188,9 @@ export default  class LoginSystem extends Component {
 				  }
 				})
 				.then(function(res) {
-				console.log('refresh login data')
 				  return res.data;  
 				})
 				.then(function(user) {
-					console.log(['refreshed ',user])
 					that.setUser(user);
 					resolve(user);
 				}).catch(function(err) {
@@ -238,20 +224,14 @@ export default  class LoginSystem extends Component {
 	  let token = getCookie('access-token');
 	  if (token && token.length > 0) {
 		return true;  
-	  //} 
-	  //// console.log(['IS LOGGED IN',this.state.user])
-      //if (this.state.user  && this.state.user.token && this.state.user.token.access_token  && this.state.user.token.access_token.length > 0) {
-          //return true;
-      } else {
+	  } else {
           return false;
       }
     }; 
      
     onLogin(user,props) {
 		let that =this;
-		// just the token into localstorage
-       // localStorage.setItem('token',JSON.stringify(user.token));
-        this.setState({user:user});
+		 this.setState({user:user});
         clearInterval(this.refreshInterval);
         this.refreshInterval = setInterval(function() {
 			that.refreshLogin(getCookie('access-token'))
@@ -260,8 +240,7 @@ export default  class LoginSystem extends Component {
     };
     
     setUser(user) {
-		// just the token into localstorage
-        this.setState({user:user});
+		this.setState({user:user});
         if (this.props.setUser) this.props.setUser(user);
     };
     
@@ -278,8 +257,6 @@ export default  class LoginSystem extends Component {
   
   logout() {
 	  let that = this;
-	  console.log('DO LOGOUT')
-      //localStorage.setItem('token',null);
 	  let user = this.state.user;
 	  this.setState({user:null});
 	  that.axiosClient( {
@@ -289,7 +266,6 @@ export default  class LoginSystem extends Component {
 			'Content-Type': 'application/json',
 		  },
 		}).then(function(res) {
-			console.log('DOne LOGOUT')
 			if (that.props.onLogout) that.props.onLogout(user,that.props);  
 		}).catch(function(err) {
 			console.log(err);
@@ -316,18 +292,12 @@ export default  class LoginSystem extends Component {
             authServer: this.props.authServer,
             loginButtons: this.props.loginButtons
         };
-        //console.log('ren log sys');
         
 		// route for /login/
         const DefaultRedirect = function(props) {
-            //if (!that.isLoggedIn()) {
             if (props.location.pathname==='/login' || props.location.pathname==='/login/') {
                props.history.push("/login/login");
             }
-            //} else if (that.isLoggedIn()) {
-				// just the parent callback (for redirects)
-		//		that.props.onLogin(this.state.user);
-			//}
             return <b></b>;
         };
     
@@ -348,13 +318,4 @@ export default  class LoginSystem extends Component {
             </div>)
          }
     };
-    
-
-
 }
-
-//<PropsRoute {...callBackFunctions} path='/login/confirm/:token' component={ConfirmRegistration} />
-                
-// moved down
-//{(this.state.warning_message) && <div className='warning' >{this.state.warning_message}</div>}
-                

@@ -1,13 +1,11 @@
-/* eslint-disable */ 
+/* esslint-disable */ 
 
 import React, { Component } from 'react';
-//import {BrowserRouter as Router,Route,Link,Switch,Redirect} from 'react-router-dom'
 import 'whatwg-fetch'
 import {FaSignOutAlt as LogoutButton} from 'react-icons/fa';
 import {FaSave as SaveButton} from 'react-icons/fa';
 import {BrowserRouter as Router,Route,Link,Switch,Redirect} from 'react-router-dom'
 
-//import 'react-confirm-alert/src/react-confirm-alert.css' // Import css
  
 export default class Profile extends Component {
 

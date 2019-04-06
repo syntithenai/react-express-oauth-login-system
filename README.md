@@ -60,7 +60,7 @@ router.use('/api/login',require('react-express-oauth-login-system/routes/loginsy
 ```
 
 2. Use the LoginSystem component on the root client route (/)  in your React application
-	- React Router is required
+	- React Router is required, the login system assumes that it exists inside a <Router> element as a <PropsRoute>
 	- /src/App.js provides an example of integrating the login UI components into your React app.
 
 ```
@@ -69,7 +69,7 @@ import LoginSystem from 'react-express-oauth-login-system'
 
 <Router><div style={{width:'70%'}}>
    <Route  exact={true} path='/' component={RedirectToLogin} />
-   <Route path='/' component={LoginSystem}  authServer={'https://localhost/api/login'} setUser={this.setUser} onLogin={this.onLogin} onLogout={this.onLogout} startWaiting={this.startWaiting} stopWaiting={this.stopWaiting} loginButtons={['google','twitter','facebook','github']} />
+   <PropsRoute path='/' component={LoginSystem}  authServer={'https://localhost/api/login'} setUser={this.setUser} onLogin={this.onLogin} onLogout={this.onLogout} startWaiting={this.startWaiting} stopWaiting={this.stopWaiting} loginButtons={['google','twitter','facebook','github']} />
 </div></Router>
 
 ```
@@ -94,6 +94,8 @@ All requests to your secured API endpoints must include an Authorization header 
 	  body: JSON.stringify(user)
 	})
 ```
+
+The module exports a number of helper functions to React including getAxiosClient that adds authentications and csrf headers to ajax requests automatically.
 
 To secure an endpoint, include the authenticate module and use it as express middleware.
 

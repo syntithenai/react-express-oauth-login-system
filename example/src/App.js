@@ -1,17 +1,12 @@
 import React, { Component } from 'react';
 import './App.css';
-//,getAxiosClient
-import LoginSystem  from 'react-express-oauth-login-system'
-import {getCookie,getAxiosClient,getMediaQueryString,getCsrfQueryString} from './helpers';
+import LoginSystem,{getAxiosClient,getMediaQueryString,getCsrfQueryString}  from 'react-express-oauth-login-system'
 
 import {BrowserRouter as Router,Route,Link} from 'react-router-dom'
 import PropsRoute from './PropsRoute'
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-//let config = require('./config');
-
-var md5 = require('md5');
 
 class App extends Component {
 	
@@ -77,12 +72,9 @@ class App extends Component {
 		props.history.push("/login");
 		return <b></b>;
 	};
-	let csrfToken = getCookie('csrf-token')
-	// use a hash of the access token to avoid exposing it in a URL
-	let mediaToken = getCookie('access-token') ? md5(getCookie('access-token')) : '';
-	let protectedMediaImage = '/api/protectedimage?_csrf='+csrfToken+'&_media='+mediaToken
-	let csrfMediaImage = '/api/csrfimage?_csrf='+csrfToken
-	  
+		let protectedMediaImage = '/api/protectedimage?'+getMediaQueryString()
+		let csrfMediaImage = '/api/csrfimage?'+getCsrfQueryString()
+	   
       return (
       <div className="App">
         {this.state.waiting && <div className="overlay" onClick={this.stopWaiting} ><img alt="loading" src='/loading.gif' /> </div>}
@@ -94,7 +86,7 @@ class App extends Component {
        <img style={{height: '30px'}}  src={protectedMediaImage} alt='Not logged in' />
         <Link to="/login/login" style={{clear:'both',display:'inline'}} ><div style={{float:'right', marginRight:'0.3em',marginLeft:'0.5em'}} className='btn btn-primary' >Login</div></Link>
                 
-       <hr style={{backgroundColor:'white'}}/>
+			<hr style={{backgroundColor:'white'}}/>
            <Route  exact={true} path='/' component={RedirectToLogin} />
 		   <PropsRoute path='/' component={LoginSystem}  authServer={'/api/login'} setUser={this.setUser} onLogin={this.onLogin} onLogout={this.onLogout} startWaiting={this.startWaiting} stopWaiting={this.stopWaiting} loginButtons={['google','twitter','facebook','github']} />
         </div>
@@ -106,4 +98,3 @@ class App extends Component {
 }
 
 export default App;
-//this.state.user && this.state.user.token && this.state.user.access_token && 

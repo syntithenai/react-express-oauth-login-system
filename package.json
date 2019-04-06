@@ -103,6 +103,7 @@
     "popper.js": "^1.14.7",
     "react-confirm-alert": "^2.2.0",
     "react-icons": "^3.4.0",
+    "react-router-dom": "^5.0.0",
     "rollup-plugin-npm": "^2.0.0"
   }
 }

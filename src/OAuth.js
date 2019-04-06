@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-//import {BrowserRouter as Router,Route,Link,Switch,Redirect} from 'react-router-dom'
 
 import tickImage from './images/check-solid.svg'
 import crossImage from './images/times-circle-solid.svg'
@@ -40,7 +39,6 @@ export default  class OAuth extends Component {
         if (!this.props.isLoggedIn()) {
            this.props.history.push("/login/login");
        } else {
-			//console.log(['OAUTH MOUNt',this.props]);
 			// extract request info
 			let params = this.props.location.search ? this.props.location.search.slice(1).split("&") : [];
 			let paramsObject = {};
@@ -66,7 +64,6 @@ export default  class OAuth extends Component {
 					  return that.parseJSON(data) 
 				   })
 				  .then(function(data) {
-					 // console.log(['OAUTH COMPLETE',data])
 						if (that.props.stopWaiting) that.props.stopWaiting();
 						if (data.error) {
 							console.log(data.error,data);
@@ -95,8 +92,6 @@ export default  class OAuth extends Component {
 				
 			} else {
 				let authRequest = localStorage.getItem('auth_request');
-				console.log(['recover OAUTH req',authRequest]);
-			
 				that.setState({authRequest: JSON.parse(authRequest)});						
 			}
 		}

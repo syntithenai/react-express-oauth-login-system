@@ -1,4 +1,4 @@
-/* eslint-disable */ 
+/* esslint-disable */ 
 
 import React, { Component } from 'react';
 import {BrowserRouter as Router,Route,Link,Switch,Redirect} from 'react-router-dom'
@@ -29,11 +29,8 @@ export default class Register extends Component {
     
     
     submitSignUp(e) {
-        console.log('SSU');
-        console.log(this.state);
         e.preventDefault();
         this.props.submitSignUp(this.state.name,this.state.avatar,this.state.email,this.state.password,this.state.password2);
-        //this.setState('');
         return false;
     };
     
@@ -44,14 +41,12 @@ export default class Register extends Component {
         return true;
     };
     
-    render() { //req,vars/
+    render() {
         return (
             <div id="registrationform" >
                 
                 <div style={{paddingLeft:'1em',clear:'both'}}>
-                     
-							
-
+              
                     <form className="col-lg-12" style={{minWidth: '400px'}} method="POST" onSubmit={(e) => this.submitSignUp(e)}  >
                             <div className="form-group">
                          
@@ -80,7 +75,4 @@ export default class Register extends Component {
             </div>
         )
     }
-
-
 }
-  

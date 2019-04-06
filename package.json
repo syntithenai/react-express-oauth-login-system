@@ -1,6 +1,6 @@
 {
   "name": "react-express-oauth-login-system",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Complete solution for login and registration in React apps using express and oauth2 as an authentication backend. ",
   "author": "syntithenai",
   "license": "BSD-2-Clause",

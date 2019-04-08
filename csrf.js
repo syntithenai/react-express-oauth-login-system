@@ -1,6 +1,7 @@
 // express middleware helpers for set and check csrf tokens
 module.exports = {	
 	setToken: function csrf(req,res,next) {
+		//console.log('csrf settoken');
 		if (!req.cookies['csrf-token']) {
 			res.cookie('csrf-token',require('crypto').randomBytes(64).toString('hex'));
 		}

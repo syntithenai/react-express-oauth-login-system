@@ -237,7 +237,7 @@ var utils = require("./utils")
 	// CALLBACK TO SUPPORT PASSPORT STRATEGIES
 	function findOrCreateUser(name,email,cb) {
 		if (email && email.length > 0) {
-			if (!config.allowedUsers || config.allowedUsers.length === 0 ||  (config.allowedUsers.indexOf(req.body.username.toLowerCase().trim()) >= 0 )) {
+			if (!config.allowedUsers || config.allowedUsers.length === 0 ||  (config.allowedUsers.indexOf(email.toLowerCase().trim()) >= 0 )) {
 				
 			 //console.log(['/findorcreate have mail',email]);
 				 database.User.findOne({username:email.trim()}).then(function(user) {
@@ -536,7 +536,7 @@ var utils = require("./utils")
 			} else {
 				database.User.findOne({username:req.body.email}, function(err, user) {
 				  if (err) {
-					  res.send({warning_message:err});
+					  res.send({warning_message:err,here:1});
 				  } else if (user!=null) {
 					  user.tmp_password = req.body.password;
 					  user.recover_password_token=generateToken(); //req.body.code;
@@ -660,7 +660,7 @@ var utils = require("./utils")
 			} else {
 				database.User.findOne(ObjectId(req.body._id), function(err, user) {
 				  if (err) {
-					  res.send({warning_message:err});
+					  res.send({warning_message:err,here:2});
 				  } else if (user!=null) {
 					 config.userFields.map(function(fieldName) {
 						let key = fieldName.trim();
@@ -727,6 +727,7 @@ var utils = require("./utils")
 
 	router.use((err, req, res, next) => {
 	  res.status(err.status || 500);
+	  console.log(err);
 	  res.json({
 		message: err.message,
 		error: err

@@ -298,15 +298,15 @@ export default  class LoginSystem extends Component {
             if (props.location.pathname==='/login' || props.location.pathname==='/login/') {
                props.history.push("/login/login");
             }
-            return <b></b>;
+            return null;
         };
     
         
         if (this.state.authRequest) {
 			return <div className='pending-auth-request' ><Link to='/login/auth' className='btn btn-success'  >Pending Authentication Request</Link></div>
 		} else {
-			return (<div>
-		        <Route path='/login' component={DefaultRedirect} />
+			return (
+				<div>
                 <PropsRoute {...callBackFunctions} path='/' component={LoginRedirect} />
                 <PropsRoute {...callBackFunctions} path='/login/profile' component={Profile}   />
                 <PropsRoute {...callBackFunctions} path='/login/login' component={Login} />
@@ -315,7 +315,8 @@ export default  class LoginSystem extends Component {
                 <PropsRoute {...callBackFunctions} path='/login/oauth' component={OAuth} />
                 <PropsRoute {...callBackFunctions} exact={true} path='/login' component={DefaultRedirect} />
                 <PropsRoute {...callBackFunctions} exact={true} path='/login/forgot' component={ForgotPassword} />
-            </div>)
+				</div>
+            )
          }
     };
 }

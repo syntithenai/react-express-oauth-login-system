@@ -24,7 +24,11 @@ function getCsrfQueryString() {
 	return '_csrf='+csrfToken
 	
 }
-
+function scrollToTop() {
+    console.log(['SCROLL TO  TOP']);
+    document.body.scrollTop = 0; // For Safari
+    document.documentElement.scrollTop = 0;
+}
 
 
 function getAxiosClient()	{
@@ -43,4 +47,4 @@ function getAxiosClient()	{
 }
 
 
-export {getCookie,getAxiosClient,getMediaQueryString,getCsrfQueryString}
+export {scrollToTop,getCookie,getAxiosClient,getMediaQueryString,getCsrfQueryString}

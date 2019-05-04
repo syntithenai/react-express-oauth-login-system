@@ -188,7 +188,7 @@ var utils = require("./utils")
 	  //}
 	//));
 
-	var GithubStrategy = require('passport-github').Strategy;
+	var GithubStrategy = require('passport-github2').Strategy;
 
 	passport.use(new GithubStrategy({
 		clientID: config.githubClientId,
@@ -197,8 +197,10 @@ var utils = require("./utils")
 	  },
 	  function(accessToken, refreshToken, profile, cb) {
 		//  console.log([profile,profile.emails]);
+		console.log(['GITHUB STRATEGRY ',profile])
 		if (profile && profile.emails && profile.emails.length > 0) {
 			let email = profile.emails[0].value
+			console.log(['GITHUB STRATEGY ',email])
 			findOrCreateUser(profile.displayName ? profile.displayName : profile.username,email,cb);
 		} else {
 			cb('github did not provide an email',null);
@@ -206,6 +208,17 @@ var utils = require("./utils")
 	  }
 	));
 	
+	//passport.use(new AmazonStrategy({
+		//clientID: config.amazonClientId,
+		//clientSecret: config.amazonClientSecret,
+		//callbackURL: config.authServer+"/amazoncallback",
+	  //},
+	  //function(accessToken, refreshToken, profile, done) {
+		//User.findOrCreate({ amazonId: profile.id }, function (err, user) {
+		  //return done(err, user);
+		//});
+	  //}
+	//));
 	
 	router.use(passport.initialize());
 	// END CONFIGURE AND INITIALISE PASSPORT
@@ -236,10 +249,12 @@ var utils = require("./utils")
 
 	// CALLBACK TO SUPPORT PASSPORT STRATEGIES
 	function findOrCreateUser(name,email,cb) {
+		console.log(['FIND AND CREATE USER ',name,email])
+								
 		if (email && email.length > 0) {
 			if (!config.allowedUsers || config.allowedUsers.length === 0 ||  (config.allowedUsers.indexOf(email.toLowerCase().trim()) >= 0 )) {
 				
-			 //console.log(['/findorcreate have mail',email]);
+			 console.log(['/findorcreate have mail',email]);
 				 database.User.findOne({username:email.trim()}).then(function(user) {
 					 console.log(['/findorcreate fnd',user]);
 					  if (user!=null) {
@@ -254,6 +269,7 @@ var utils = require("./utils")
 						  
 						  let user = new database.User(item);
 						  user.save().then(function() {;
+								console.log(['FIND AND CREATE USER COMPLETE ',user])
 								// USER LOGIN SUCCESS JSON
 								cb(null,user.toObject());
 						  });
@@ -391,7 +407,7 @@ var utils = require("./utils")
 	
 	
 	router.use('/github',function(req, res, next) {
-	  passport.authenticate('github', { scope: ['user'] })(req,res,next);
+	  passport.authenticate('github', { scope: ['user:email'] })(req,res,next);
 	}) 
 	router.get('/githubcallback', 
 	  passport.authenticate('github', { failureRedirect: '/login' }),
@@ -401,6 +417,15 @@ var utils = require("./utils")
 		});
 	 });
 	
+	//app.get('/amazon',
+	  //passport.authenticate('amazon'));
+
+	//app.get('/amazoncallback', 
+	  //passport.authenticate('amazon', { failureRedirect: '/login' }),
+	  //function(req, res) {
+		//// Successful authentication, redirect home.
+		//res.redirect('/');
+	  //});
 	
 	
 	/********************

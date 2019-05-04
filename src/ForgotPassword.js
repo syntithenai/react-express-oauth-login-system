@@ -3,6 +3,7 @@
 import React, { Component } from 'react';
 import {BrowserRouter as Router,Route,Link,Switch,Redirect} from 'react-router-dom'
 
+import {scrollToTop} from './helpers'  
 
 export default  class ForgotPassword extends Component {
     
@@ -11,7 +12,11 @@ export default  class ForgotPassword extends Component {
         this.state={signin_username:'',signin_password:'',rememberme:false};
         this.change = this.change.bind(this);
     };
-         
+    
+    componentDidMount() {
+		scrollToTop();
+	}
+   
     change(e) {
         var state = {};
         state[e.target.name] =  e.target.value;

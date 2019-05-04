@@ -1,4 +1,5 @@
 /* esslint-disable */ 
+import {scrollToTop} from './helpers'  
 
 import React, { Component } from 'react';
 import {BrowserRouter as Router,Route,Link,Switch,Redirect} from 'react-router-dom'
@@ -20,13 +21,17 @@ export default class Register extends Component {
             password2:'',
             justSignedUp: false,
             forgotPassword: false,
-            avatar: faker.commerce.productAdjective()+faker.name.firstName()
+            avatar: faker.commerce.productAdjective()+faker.name.firstName()+faker.name.lastName()
         }
         this.change = this.change.bind(this);
         this.submitSignUp = this.submitSignUp.bind(this);
         
     };
     
+    componentDidMount() {
+		scrollToTop();
+	}
+
     
     submitSignUp(e) {
         e.preventDefault();

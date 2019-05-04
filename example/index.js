@@ -44,7 +44,7 @@ router.use('/api/login',loginRouter);
 function checkMedia(req,res,next) {
 	let cookie = req.cookies['access-token'] ? req.cookies['access-token']  : '';
 	let parameter = req.query._media ? req.query._media : (req.body._media ? req.body._media : '')
-	console.log(['MEDIA CHECK',cookie,parameter])
+	//console.log(['MEDIA CHECK',cookie,parameter])
 	if (md5(cookie) === parameter) {
 		next()
 	} else {
@@ -66,10 +66,10 @@ router.use('/api/csrfimage',csrf.checkToken,function (req,res) {
 
 // An api endpoint that returns a short list of items
 router.use('/api/getlist',csrf.checkToken, authenticate, (req,res) => {
-	console.log('getliste')
+	//console.log('getliste')
 	var list = ["item1", "item2", "item3"];
 	res.send([{items:list}]);
-	console.log('Sent list of items');
+	//console.log('Sent list of items');
 });
 
 app.use(router);

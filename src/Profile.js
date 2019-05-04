@@ -5,6 +5,7 @@ import 'whatwg-fetch'
 import {FaSignOutAlt as LogoutButton} from 'react-icons/fa';
 import {FaSave as SaveButton} from 'react-icons/fa';
 import {BrowserRouter as Router,Route,Link,Switch,Redirect} from 'react-router-dom'
+import {scrollToTop} from './helpers'  
 
  
 export default class Profile extends Component {
@@ -44,6 +45,7 @@ export default class Profile extends Component {
 		if (!that.props.user) {
 		   that.props.history.push("/login/login");
 	   }
+		scrollToTop();
 	};
     
     componentDidUpdate() {

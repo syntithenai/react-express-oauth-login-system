@@ -42,7 +42,7 @@
     "react": "^16.4.1",
     "react-confirm-alert": "^2.2.0",
     "react-dom": "^16.4.1",
-    "react-express-oauth-login-system": "file:../react-express-oauth-login-system-1.0.3.tgz",
+    "react-express-oauth-login-system": "file:../react-express-oauth-login-system-1.0.4.tgz",
     "react-icons": "^3.4.0",
     "react-router-dom": "^4.3.1",
     "react-scripts": "^1.1.4",

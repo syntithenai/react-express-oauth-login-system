@@ -4,13 +4,15 @@ const cookieParser = require('cookie-parser');
 var session = require('express-session')
 let config = require('./config');
 global.gConfig = config;
-const proxy = require('http-proxy-middleware')
+//const proxy = require('http-proxy-middleware')
 const path = require('path');
 const fs = require('fs'),
     http = require('http'),
     https = require('https')
 
-let app = express();
+const app = express();
+
+
 var flash = require('connect-flash');
 var md5 = require('md5');
 //var authenticate = require('react-express-oauth-login-system/authenticate');
@@ -23,12 +25,16 @@ app.use(cookieParser());
 // session required for twitter login
 app.use(session({ secret: config.sessionSalt ? config.sessionSalt : 'board GOAT boring do boat'}));
 
-// logging
-app.use(function(req,res,next) {
-	console.log(['URL',req.url]);
-//	,req.headers,req.cookies
+ //logging
+app.use('/',function(req,res,next) {
+	console.log(['URL',req.url]); //,req.cookies,req.headers
+//	
 	next()
 });
+
+app.get('/', (req, res) => {
+  res.send('Hello World!')
+})
 
 var router = express.Router();
 
@@ -36,10 +42,13 @@ var router = express.Router();
 // ENDPOINTS
 // login system
 //var loginRouter = require('react-express-oauth-login-system/routes/loginsystem.js');
-var loginRouter = require('../routes/loginsystem.js');
+//var loginRouter = require('../routes/loginsystem.js');
+//router.use('/', (req, res) => {
+  //res.send('Hello World Router!')
+//})
 
 //console.log(['INIT EXAMPLE login router',loginRouter])
-router.use('/api/login',loginRouter);
+router.use('/api/login',require('../routes/loginsystem.js'));
 
 function checkMedia(req,res,next) {
 	let cookie = req.cookies['access-token'] ? req.cookies['access-token']  : '';
@@ -72,24 +81,34 @@ router.use('/api/getlist',csrf.checkToken, authenticate, (req,res) => {
 	//console.log('Sent list of items');
 });
 
+router.use('/api',function (req,res) {
+    console.log('API')
+	res.send({error:'Invalid request   '})
+});
+
 app.use(router);
-// Development, proxy to local create-react-app
+ //Development, proxy to local create-react-app
 
 //let proxyServer = proxy({ target: config.reactServer })
-app.use('/',csrf.setToken,proxy({ target: config.reactServer }))
+//app.use('/',csrf.setToken,proxy({ target: config.reactServer }))
 
 app.use(function (err, req, res, next) {
-	console.log(err);
+	console.log('ERR');
+    console.log(err);
 });
 
 // SSL
 // allow self generated certs
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-var options = {
-    key: fs.readFileSync('./key.pem'),
-    cert: fs.readFileSync('./certificate.pem'),
-};
-let port='443'
-var webServer = https.createServer(options, app).listen(port, function(){
-  console.log("Express server listening on port " + port);
-});
+//process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+//var options = {
+    //key: fs.readFileSync('./key.pem'),
+    //cert: fs.readFileSync('./certificate.pem'),
+//};
+var options = {}
+let port='5000'
+app.listen(port, () => {
+  console.log(`Example app listening at http://localhost:${port}`)
+})
+//var webServer = http.createServer(options, app).listen(port, function(){
+  //console.log("Express server listening on port " + port);
+//});

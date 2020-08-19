@@ -10,7 +10,7 @@ import Register from './Register'
 import LoginRedirect from './LoginRedirect'
 import ForgotPassword from './ForgotPassword'
 import OAuth from './OAuth'
-import {getCookie,getAxiosClient} from './helpers'  
+import {getCookie,getAxiosClient, refreshLogin} from './helpers'  
 
 export default  class LoginSystem extends Component {
     
@@ -35,11 +35,34 @@ export default  class LoginSystem extends Component {
        this.axiosClient = null;
     };
     
-    componentDidMount() {
+    componentDidMount(props) {
         let that=this;
+            console.log('MOUNT LOGINSYSTEM')
  			// ensure xsrf header in all ajax requests
 			this.axiosClient = getAxiosClient();
+            this.loginReload()
+            
 	};
+    
+    loginReload() {
+        let that = this;
+        console.log(['login RELOAD',that.props])
+		if (!this.state.user || !this.state.user._id) {
+            console.log(['login redire need user',that.props])
+			let accessToken = getCookie('access-token')
+            console.log(['login redire to\ken',that.props])
+			if (accessToken && accessToken.length > 0) {
+				that.refreshLogin(accessToken).then(function(user) {
+					console.log(['LOGINSUCCESS refreshed',user,that.props])
+					if (that.props.location.pathname === "/login/success") {
+						that.onLogin(user,that.props)
+					} else {
+						that.setUser(user);
+					}
+				});
+			}
+		}
+    }
    
     saveUser(user) {
          let that = this;
@@ -65,6 +88,7 @@ export default  class LoginSystem extends Component {
     submitSignIn(user,pass) {
 		var that=this;
         this.submitWarning('');
+        console.log(['login',user,pass])
         if (this.props.startWaiting) this.props.startWaiting();
         setTimeout(function() {
            that.axiosClient( {
@@ -80,6 +104,7 @@ export default  class LoginSystem extends Component {
             return res.data;  
 		   })
           .then(function(user) {
+              console.log(['login got user',user])
                 if (that.props.stopWaiting) that.props.stopWaiting();
                 if (user.message) {
                     that.submitWarning(user.message);

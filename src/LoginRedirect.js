@@ -13,8 +13,11 @@ export default  class LoginRedirect extends Component {
          
 	componentDidMount() {
 		let that = this;
+        console.log(['login redire',that.props])
 		if (!this.props.user || !this.props.user._id) {
+            console.log(['login redire need user',that.props])
 			let accessToken = getCookie('access-token')
+            console.log(['login redire to\ken',that.props])
 			if (accessToken && accessToken.length > 0) {
 				that.props.refreshLogin(accessToken).then(function(user) {
 					console.log(['LOGINSUCCESS refreshed',user,that.props])

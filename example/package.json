@@ -49,6 +49,7 @@
     "session": "^0.1.0",
     "typescript": "^3.3.3333"
   },
+  "proxy": "http://localhost:5000",
   "scripts": {
     "startreact": "react-scripts start",
     "start": "nodemon index.js | react-scripts start",

@@ -7,8 +7,10 @@ const OAuthAccessToken = db.OAuthAccessToken;
 const OAuthAuthorizationCode = db.OAuthAuthorizationCode;
 const OAuthRefreshToken = db.OAuthRefreshToken;
 
+
+
 function getAccessToken(accessToken) {
-  //console.log('getAccessToken', accessToken);
+  console.log('getAccessToken', accessToken);
   return OAuthAccessToken
     .findOne({ accessToken })
     .populate('user')
@@ -21,7 +23,7 @@ function getAccessToken(accessToken) {
 }
 
 function getClient(clientId, clientSecret) {
-  //console.log('getClient', clientId, clientSecret);
+  console.log('getClient', clientId, clientSecret);
   const query = { clientId };
   //console.log(query);
   if (clientSecret) {
@@ -55,7 +57,7 @@ function getUser(username, password) {
 }
 
 function revokeAuthorizationCode(code) {
-  //console.log('revokeAuthorizationCode', code);
+  console.log('revokeAuthorizationCode', code);
   return OAuthAuthorizationCode.findOneAndRemove({ code: code.code })
     .then(removed => !!removed)
     .catch((err) => {
@@ -64,7 +66,7 @@ function revokeAuthorizationCode(code) {
 }
 
 function revokeToken(token) {
-  //console.log('revokeToken', token);
+  console.log('revokeToken', token);
   return OAuthRefreshToken.findOneAndRemove({ refreshToken: token.refreshToken })
     .then(removed => !!removed)
     .catch((err) => {
@@ -74,7 +76,7 @@ function revokeToken(token) {
 
 
 function saveToken(token, client, user) {
-  //console.log('saveToken', token, client, user);
+  console.log('saveToken', token, client, user);
   return Promise.all([
     OAuthAccessToken.create({
       accessToken: token.accessToken,
@@ -98,7 +100,7 @@ function saveToken(token, client, user) {
 }
 
 function getAuthorizationCode(code) {
-  //console.log('getAuthorizationCode', code);
+  console.log('getAuthorizationCode', code);
   return OAuthAuthorizationCode
     .findOne({ code })
     .populate('user')
@@ -108,7 +110,7 @@ function getAuthorizationCode(code) {
       if (!authCodeModel) {
         return false;
       }
-
+        console.log(authCodeModel)
       const extendedClient = Object.assign(authCodeModel.client, { id: authCodeModel.client.clientId });
       return Object.assign(authCodeModel, { client: extendedClient });
     })
@@ -118,7 +120,7 @@ function getAuthorizationCode(code) {
 }
 
 function saveAuthorizationCode(code, client, user) {
-  //console.log('saveAuthorizationCode', code, client, user);
+  console.log('saveAuthorizationCode', code, client, user);
   return OAuthAuthorizationCode
     .create({
       expiresAt: code.expiresAt,
@@ -138,7 +140,7 @@ function saveAuthorizationCode(code, client, user) {
 }
 
 function getUserFromClient(client) {
- // console.log('getUserFromClient', client);
+  console.log('getUserFromClient', client);
   return User.findById(client.user)
     .lean()
     .then(dbUser => dbUser)
@@ -148,7 +150,7 @@ function getUserFromClient(client) {
 }
 
 function getRefreshToken(refreshToken) {
- // console.log('getRefreshToken', refreshToken);
+  console.log('getRefreshToken', refreshToken);
   return OAuthRefreshToken
     .findOne({ refreshToken })
     .populate('user')
@@ -189,10 +191,22 @@ function verifyScope(token, scope) {
   return true;
 }
 
+
+//function generateAccessToken(client, user, scope, callbacks) {
+    
+//}
+//function generateAuthorizationCode(client, user, scope, callbacks) {
+    
+//}
+
+//function generateRefreshToken(client, user, scope, callbacks) {
+    
+//}
+
 module.exports = {
-  // generateAccessToken(client, user, scope) optional
-  // generateAuthorizationCode(), optional
-  // generateRefreshToken(client, user, scope) - optional
+   //generateAccessToken, 
+   //generateAuthorizationCode, 
+   //generateRefreshToken, 
   getAccessToken,
   getAuthorizationCode,
   getClient,

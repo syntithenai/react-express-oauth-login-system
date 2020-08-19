@@ -18,7 +18,6 @@ function connect(connectString='') {
 		console.log(err);
 	  });
   }
-  
 }
 
 module.exports = {

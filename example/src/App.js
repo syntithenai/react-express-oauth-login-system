@@ -68,6 +68,7 @@ class App extends Component {
   }
 	      
   render() {
+      console.log(['rendre app'])
     const RedirectToLogin = function(props) {
 		props.history.push("/login");
 		return <b></b>;

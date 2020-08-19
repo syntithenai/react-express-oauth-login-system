@@ -18,5 +18,7 @@ const OAuthClientSchema = new Schema({
   scope: String,
   user: { type: Schema.Types.ObjectId, ref: 'User' }
 });
-
+OAuthClientSchema.virtual('id').get(function () {
+  return this._id;
+});
 module.exports = mongoose.model('OAuthClient', OAuthClientSchema);

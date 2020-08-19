@@ -9,5 +9,7 @@ const OAuthAccessTokenSchema = new Schema({
   user: { type: Schema.Types.ObjectId, ref: 'User' },
   client: { type: Schema.Types.ObjectId, ref: 'OAuthClient' }
 });
-
+OAuthAccessTokenSchema.virtual('id').get(function () {
+  return this._id;
+});
 module.exports = mongoose.model('OAuthAccessToken', OAuthAccessTokenSchema);

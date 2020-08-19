@@ -17,5 +17,7 @@ const UserSchema = new Schema({
 //  token: Object,
   tmp_password: String
 });
-
+UserSchema.virtual('id').get(function () {
+  return this._id;
+});
 module.exports = mongoose.model('User', UserSchema);

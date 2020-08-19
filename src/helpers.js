@@ -47,4 +47,5 @@ function getAxiosClient()	{
 }
 
 
+
 export {scrollToTop,getCookie,getAxiosClient,getMediaQueryString,getCsrfQueryString}

@@ -10,8 +10,19 @@ var md5 = require('md5');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const bluebird = require('bluebird');
-const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
+//const oauthMiddlewares = require('../oauth/oauthServerMiddlewares');
+const OAuthServer = require('express-oauth-server')
+const model = require('./model')
+const {sendWelcomeEmail} = require('./utils')
 
+var oauthServer = new OAuthServer({
+  model: model,
+  grants: ['authorization_code', 'refresh_token','password'],
+  accessTokenLifetime: 60 * 60 * 24, // 24 hours, or 1 day
+  allowEmptyState: true,
+  allowExtendedTokenAttributes: true,
+})
+var passport = require('./passport')
 let config = global.gConfig;
 var router = express.Router();
 
@@ -33,7 +44,7 @@ var utils = require("./utils")
 	});
 
 
-	const database = require('../oauth/database');
+	const database = require('./database');
 	
 	// INITIALSE OAUTH SERVER - create client if not exists
 	database.OAuthClient.findOne({clientId: config.clientId}).then(function(client) {
@@ -54,177 +65,6 @@ var utils = require("./utils")
 	router.use(bodyParser.json());
 	router.use(bodyParser.urlencoded({ extended: false }));
 
-
-	// implement csrf check locally so fine grain selection of protected paths can be applied (leaving oauth paths public)
-	// can be enabled/disabled in configuration
-	let csrfCheck = function(req,res,next) { next()}
-	if (config.csrfCheck) {
-		csrfCheck = function(req,res,next) {
-			if (req.cookies && req.cookies['csrf-token'] && req.cookies['csrf-token'].length > 0) {
-				if (req.headers && req.headers['x-csrf-token'] && req.headers['x-csrf-token'].length > 0 && req.headers['x-csrf-token'] === req.cookies['csrf-token']) {
-					next();
-				} else if (req.query && req.query['_csrf'] && req.query['_csrf'].length > 0 && req.query['_csrf'] === req.cookies['csrf-token']) {
-					next();
-				} else if (req.body && req.body['_csrf'] && req.body['_csrf'].length > 0 && req.body['_csrf'] === req.cookies['csrf-token']) {
-					next();
-				} else {
-					res.send({error:'Failed CSRF check'});
-				}
-			} else {
-				res.send({error:'Failed CSRF check'});
-			}
-		} 
-	}
-	
-	// no csrf check for external oauth routes
-	router.all('/token', oauthMiddlewares.token);
-	router.post('/authorize', oauthMiddlewares.authorize);
-	router.get('/authorize',function(req,res) {
-		//console.log(['AUTHORIZE',req]);
-	})
-	
-
-	// CONFIGURE AND INITIALISE PASSPORT 
-	var passport = require('passport')
-
-	passport.serializeUser(function(user, done) {
-	  done(null, user);
-	});
-
-	passport.deserializeUser(function(user, done) {
-	  done(null, user);
-	});
-
-
-	var LocalStrategy = require('passport-local').Strategy;
-
-	// username/password
-	passport.use(new LocalStrategy(
-	  function(username, password, done) {
-		database.User.findOne({ username: username,password:password }, function (err, user) {
-		  if (err) { return done(err); }
-		  if (!user) {
-			return done(null, false, { message: 'Incorrect login details' });
-		  }
-		 // console.log('LOGIN',user.toObject());
-		  return done(null, user);
-		});
-	  }
-	));
-
-
-	var GoogleStrategy = require('passport-google-oauth20').Strategy;
-	passport.use(new GoogleStrategy({
-		clientID: config.googleClientId,
-		clientSecret: config.googleClientSecret,
-		callbackURL: config.authServer + '/googlecallback'
-	  },
-	  function(accessToken, refreshToken, profile, cb) {
-		if (profile && profile.emails && profile.emails.length > 0) {
-				let email = profile.emails[0].value
-				findOrCreateUser(profile.displayName,email,cb);
-			} else {
-				cb('google did not provide an email',null);
-			}
-		}
-	));
-
-
-
-	var TwitterStrategy = require('passport-twitter').Strategy;
-
-	passport.use(new TwitterStrategy({
-		consumerKey: config.twitterConsumerKey,
-		consumerSecret: config.twitterConsumerSecret,
-		callbackURL: config.authServer + '/twittercallback',
-		userProfileURL: "https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true"
-	  },
-	  function(token, tokenSecret, profile, cb) {
-		//	console.log(['twitter LOGIN STRAT',token, tokenSecret, profile,profile.emails,profile.entities,profile.status,profile.photos]);
-			if (profile && profile.emails && profile.emails.length > 0) {
-				let email = profile.emails[0].value
-				findOrCreateUser(profile.displayName,email,cb);
-			} else {
-				cb('twitter did not provide an email',null);
-			}
-	  }
-	));
-
-
-	var FacebookStrategy = require('passport-facebook').Strategy;
-
-	passport.use(new FacebookStrategy({
-		clientID: config.facebookAppId,
-		clientSecret: config.facebookAppSecret,
-		callbackURL: config.authServer + '/facebookcallback',
-		profileFields: ['id', 'displayName', 'photos', 'email']
-	  },
-	  function(token, tokenSecret, profile, cb) {
-			//console.log(['FacebookStrategy LOGIN STRAT',token, tokenSecret, profile,profile.emails,profile.entities,profile.status,profile.photos]);
-			if (profile && profile.emails && profile.emails.length > 0) {
-				let email = profile.emails[0].value
-				findOrCreateUser(profile.displayName,email,cb);
-			} else {
-				cb('FacebookStrategy did not provide an email',null);
-			}
-	  }
-	));
-	// NO ACCESS TO EMAIL ADDRESS
-	//var InstagramStrategy = require('passport-instagram').Strategy;
-
-	//passport.use(new InstagramStrategy({
-		//clientID: config.instagramClientId,
-		//clientSecret: config.instagramClientSecret,
-		//callbackURL: config.authServer+"/instagramcallback"
-	  //},
-	  //function(accessToken, refreshToken, profile, cb) {
-		//console.log([profile,profile.emails]);
-		//if (profile && profile.emails && profile.emails.length > 0) {
-			//let email = profile.emails[0].value
-			//findOrCreateUser(profile.displayName,email,cb);
-		//} else {
-			//cb('instagram did not provide an email',null);
-		//}
-	  //}
-	//));
-
-	var GithubStrategy = require('passport-github2').Strategy;
-
-	passport.use(new GithubStrategy({
-		clientID: config.githubClientId,
-		clientSecret: config.githubClientSecret,
-		callbackURL: config.authServer+"/githubcallback",
-	  },
-	  function(accessToken, refreshToken, profile, cb) {
-		//  console.log([profile,profile.emails]);
-		console.log(['GITHUB STRATEGRY ',profile])
-		if (profile && profile.emails && profile.emails.length > 0) {
-			let email = profile.emails[0].value
-			console.log(['GITHUB STRATEGY ',email])
-			findOrCreateUser(profile.displayName ? profile.displayName : profile.username,email,cb);
-		} else {
-			cb('github did not provide an email',null);
-		}
-	  }
-	));
-	
-	//passport.use(new AmazonStrategy({
-		//clientID: config.amazonClientId,
-		//clientSecret: config.amazonClientSecret,
-		//callbackURL: config.authServer+"/amazoncallback",
-	  //},
-	  //function(accessToken, refreshToken, profile, done) {
-		//User.findOrCreate({ amazonId: profile.id }, function (err, user) {
-		  //return done(err, user);
-		//});
-	  //}
-	//));
-	
-	router.use(passport.initialize());
-	// END CONFIGURE AND INITIALISE PASSPORT
-	
-	
-	
 
 	// CALLBACK WHEN USER IS IDENTIFIED TO ADD TOKEN AND SET ACCESS COOKIE
 	function loginSuccessJson(user,res,cb) {
@@ -298,8 +138,8 @@ var utils = require("./utils")
 				password: user.password,
 				'grant_type':'password',
 				'client_id':config.clientId,
-				'client_secret':config.clientSecret
-			  };
+                'client_secret':config.clientSecret,
+			};
 			  console.log(['RQUEST TOKEN',params])
 			  return fetch(config.authServer+"/token", {
 				  method: 'POST',
@@ -341,9 +181,91 @@ var utils = require("./utils")
 		 delete item.tmp_password;
 		 return item;
 	}
+    
+
+	// implement csrf check locally so fine grain selection of protected paths can be applied (leaving oauth paths public)
+	// can be enabled/disabled in configuration
+	let csrfCheck = function(req,res,next) { next()}
+	if (config.csrfCheck) {
+		csrfCheck = function(req,res,next) {
+			if (req.cookies && req.cookies['csrf-token'] && req.cookies['csrf-token'].length > 0) {
+				if (req.headers && req.headers['x-csrf-token'] && req.headers['x-csrf-token'].length > 0 && req.headers['x-csrf-token'] === req.cookies['csrf-token']) {
+					next();
+				} else if (req.query && req.query['_csrf'] && req.query['_csrf'].length > 0 && req.query['_csrf'] === req.cookies['csrf-token']) {
+					next();
+				} else if (req.body && req.body['_csrf'] && req.body['_csrf'].length > 0 && req.body['_csrf'] === req.cookies['csrf-token']) {
+					next();
+				} else {
+					res.send({error:'Failed CSRF check'});
+				}
+			} else {
+				res.send({error:'Failed CSRF check'});
+			}
+		} 
+	}
 	
 	
-	/*********************************
+    router.post('/authorize', (req,res,next) => {
+      console.log('ddInitial User Authentication')
+      const {username, password} = req.body
+      console.log('HAVE dets',username, password)
+      if(username  && password) {
+        req.body.user = model.getUser(username, password)
+        console.log('HAVE USER',req.body.user)
+        return next()
+      }
+      const params = [ // Send params back down
+        'client_id',
+        'redirect_uri',
+        'response_type',
+        'grant_type',
+        'state',
+      ]
+        .map(a => `${a}=${req.body[a]}`)
+        .join('&')
+      return res.redirect(`/oauth?success=false&${params}`)
+    }, (req,res, next) => { // sends us to our redirect with an authorization code in our url
+      console.log('Authorization')
+      return next()
+    }, oauthServer.authorize({
+      authenticateHandler: {
+        handle: req => {
+          console.log('Authenticate Handler')
+          console.log(Object.keys(req.body).map(k => ({name: k, value: req.body[k]})))
+          return req.body.user
+        }
+      }
+    }))
+
+    router.post('/token', (req,res,next) => {
+      console.log('Token')
+      next()
+    },oauthServer.token({
+      requireClientAuthentication: { // whether client needs to provide client_secret
+        //'authorization_code': false,
+      },
+    }))  // Sends back token
+
+
+	
+	
+	//passport.use(new AmazonStrategy({
+		//clientID: config.amazonClientId,
+		//clientSecret: config.amazonClientSecret,
+		//callbackURL: config.authServer+"/amazoncallback",
+	  //},
+	  //function(accessToken, refreshToken, profile, done) {
+		//User.findOrCreate({ amazonId: profile.id }, function (err, user) {
+		  //return done(err, user);
+		//});
+	  //}
+	//));
+	
+	router.use(passport.initialize());
+	// END CONFIGURE AND INITIALISE PASSPORT
+	
+	
+    /*********************************
 	 * API ROUTES
 	 *********************************/
 	
@@ -665,7 +587,7 @@ var utils = require("./utils")
 	/********************
 	 * Update the access token and return the current user(+token) as JSON
 	 ********************/
-	router.post('/me',csrfCheck,oauthMiddlewares.authenticate,function(req,res) {
+	router.post('/me',csrfCheck,oauthServer.authenticate,function(req,res) {
 		if (req.user && req.user._id) {
 			loginSuccessJson(req.user.user,res,function(err,finalUser) {
 				if (err) console.log(err);
@@ -678,7 +600,7 @@ var utils = require("./utils")
 	/********************
 	 * SAVE USER, oauthMiddlewares.authenticate
 	 ********************/
-	router.post('/saveuser',csrfCheck,oauthMiddlewares.authenticate, function(req, res) {
+	router.post('/saveuser',csrfCheck,oauthServer.authenticate, function(req, res) {
 		if (req.body._id && req.body._id.length > 0) {
 			if (req.body.password && req.body.password.length > 0 && req.body.password2 && req.body.password2.length > 0 && req.body.password2 != req.body.password)  {
 				res.send({warning_message:'Passwords do not match'});
@@ -727,22 +649,22 @@ var utils = require("./utils")
 		}
 	});
 
-	router.get('/oauthclient',function(req,res) {
-		let clientId = req.query.clientId;
-		database.OAuthClient.findOne({clientId:clientId}, function (err, client) {
-		    if (err) { 
-				res.send({error:err})  
-			} else {
-				if (client) {
-					res.send({name:client.name,website_url:client.website_url,privacy_url:client.privacy_url,image:client.image});
-				} else {
-						res.send({error:'no match'})  
-				}
-			}
-		});	 
+	//router.get('/oauthclient',function(req,res) {
+		//let clientId = req.query.clientId;
+		//database.OAuthClient.findOne({clientId:clientId}, function (err, client) {
+		    //if (err) { 
+				//res.send({error:err})  
+			//} else {
+				//if (client) {
+					//res.send({name:client.name,website_url:client.website_url,privacy_url:client.privacy_url,image:client.image});
+				//} else {
+						//res.send({error:'no match'})  
+				//}
+			//}
+		//});	 
 			 
 			 
-	})
+	//})
 	// error handlers
 	router.use((req, res, next) => {
 	  const err = new Error('Not Found');
@@ -761,28 +683,7 @@ var utils = require("./utils")
 
 
 
-	function sendWelcomeEmail(token,name,username) {
-		var link = config.authServer + '/doconfirm?code='+token;
-		var mailTemplate = config.signupEmailTemplate && config.signupEmailTemplate.length > 0  ? config.signupEmailTemplate : `<div>Hi {{name}}! <br/>
-
-				Welcome,<br/>
-
-				To confirm your registration, please click the link below.<br/>
-
-				<a href="{{link}}" >Confirm registration</a><br/>
-
-				If you did not recently register, please ignore this email.<br/><br/>
-
-				</div>`
-		utils.sendMail(config.mailFrom,username,'Confirm your registration',
-			mustache.render(mailTemplate,{link:link,name:name}
-			)
-		);
-		item={}
-		item.message = 'Check your email to confirm your sign up.';
-		return item;
-		
-	}
+	
 
 module.exports =  router;
 

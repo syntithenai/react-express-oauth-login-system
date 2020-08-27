@@ -13,9 +13,17 @@ It also integrates passport.js to enable login using Google, Twitter, Facebook a
 In the box
 - React components to implement a login and registration system.
 - Express routes to support login, registration, password recovery, oauth authorization and oauth login from various providers using passport.js
-- Express routes to implement an oauth2 server using the oauth library and the mongodb integration from https://github.com/slavab89/oauth2-server-example-mongodb
-- Configurable CSRF checks for appropriates routes while leaving oauth routes and passport callback routes exposed.
+- Express routes to implement an oauth2 server using the oauth library and the mongodb
 - Example web application.
+
+Features
+- Configurable CSRF checks for appropriates routes while leaving oauth routes and passport callback routes exposed.
+- JWT tokens to allow query free distributed authentication
+- Helper functions to create an axios client that supports csrf and authentication without extra effort.
+- Refresh token flow using HttpOnly cookies to keep users logged in securely
+- CORS headers to support distributed authentication
+- LoginSystemContext Component to hold user state above application and LoginSystem component to add as DOM route.
+- Built in privacy page
 
 ## Quickstart
 
@@ -56,7 +64,24 @@ npm i react-express-oauth-login-system
 	- /index.js provides an example of integrating the login system routes.
 	
 ```
-router.use('/api/login',require('react-express-oauth-login-system/routes/loginsystem.js'));
+var loginSystem = require('react-express-oauth-login-system/routes/loginsystem.js')
+// async connect to db THEN add routes, start server
+loginSystem(config).then(function({router, authenticate,csrf}) {
+
+    const app = express();
+    app.use(bodyParser.json());
+    app.use(cookieParser());
+    // session required for twitter login
+    app.use(session({ secret: config.sessionSalt ? config.sessionSalt : 'board GOAT boring do boat'}));
+    app.use('/api/login',loginRouter);
+    // endpoint requiring authentication
+    app.use('/protected',authenticate,loginRouter);
+    
+     app.listen(port, () => {
+      console.log(`Login system example listening at http://localhost:${port}`)
+    })
+})
+    
 ```
 
 2. Use the LoginSystem component on the root client route (/)  in your React application
@@ -69,7 +94,14 @@ import LoginSystem from 'react-express-oauth-login-system'
 
 <Router><div style={{width:'70%'}}>
    <Route  exact={true} path='/' component={RedirectToLogin} />
-   <PropsRoute path='/' component={LoginSystem}  authServer={'https://localhost/api/login'} setUser={this.setUser} onLogin={this.onLogin} onLogout={this.onLogout} startWaiting={this.startWaiting} stopWaiting={this.stopWaiting} loginButtons={['google','twitter','facebook','github']} />
+   <PropsRoute path='/' component={LoginSystem}  
+   // update for login api location, use package.json proxy config to map other host/port to local link
+    authServer={'/api/login'} 
+    // also need external link to auth server (combind authServerHostname + authServer) for google, github, .. login buttons
+    authServerHostname={'http://localhost:5000'} 
+    loginButtons={['google','twitter','facebook','github','amazon']}
+    setUser={this.setUser} onLogin={this.onLogin} onLogout={this.onLogout} startWaiting={this.startWaiting} stopWaiting={this.stopWaiting} 
+   />
 </div></Router>
 
 ```
@@ -96,22 +128,25 @@ All requests to your secured API endpoints must include an Authorization header 
 ```
 
 The module exports a number of helper functions to React including getAxiosClient that adds authentications and csrf headers to ajax requests automatically.
-
-To secure an endpoint, include the authenticate module and use it as express middleware.
-
 ```
-var authenticate = require('react-express-oauth-login-system/authenticate.js')
-
-// An api endpoint that returns a short list of items
-router.get('/api/getList',authenticate, (req,res) => {
-	var list = ["item1", "item2", "item3"];
-	// note that res.user is available after authentication
-	res.json([{items:list,user:res.user}]);
-	console.log('Sent list of items');
-});
-
-
+import {getCookie,getAxiosClient} from './helpers'  
+this.axiosClient = getAxiosClient();
+that.axiosClient( {
+  url: that.props.authServer+'/signin',
+  method: 'post',
+  data: {
+    username: user,
+    password: pass
+  }
+})
+.then(this.checkStatus)
+.then(function(res) {
+  return res.data;  
+})
+.then(function(user) {})
 ```
+
+
 
 ## Login With External Services
 
@@ -129,8 +164,7 @@ https://developers.facebook.com/apps/
 
 https://console.developers.google.com/
 
-
-https://www.instagram.com/developer/ [DIABLED because it is not possible to ask for email address of logged in user as id :(]
+https://developer.amazon.com/settings/console/securityprofile/overview.html
 
 
 
@@ -186,3 +220,9 @@ The example provides code to protect against Cross Site Request Forgery by
 - checking that the cookie and the header match for routes that need protecting. Externally available API endpoints should not use CSRF checking.
 
 
+## Links
+
+- https://github.com/14gasher/oauth-example#url
+- https://hasura.io/blog/best-practices-of-using-jwt-with-graphql/#refresh_token
+- https://oauth2-server.readthedocs.io/en/latest/index.html
+- https://github.com/slavab89/oauth2-server-example-mongodb

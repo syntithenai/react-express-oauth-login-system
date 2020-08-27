@@ -1,7 +1,6 @@
 {
   "name": "react-express-oauth-login-system",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.1.1",
   "browser": "dist/index.js",
   "main": "src/routes/index.js",
   "dependencies": {
@@ -28,8 +27,8 @@
     "popper.js": "^1.16.1",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
-    "react-express-oauth-login-system-components": "^1.0.0",
-    "express-oauth-login-system-server": "^1.0.0",
+    "react-express-oauth-login-system-components": "^0.0.0",
+    "express-oauth-login-system-server": "^0.0.0",
     "react-icons": "^3.11.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "^3.4.3",

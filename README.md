@@ -2,21 +2,23 @@
 
 This package provides an easy way to add user registration and login to a React web application. 
 
-Add the routes to your express application and use the LoginSystem component in your client.
+This package is an example application, that shows how to use the two related packages
+- express-oauth-login-system-routes  in an express server
+- react-express-oauth-login-system-components    in a react application
 
 It integrates a complete oauth2 server implementation and uses that for local authentication and token generation so passwords are never given to the web clients.
 
-The delegated authentication provided by the oauth2 server is useful to allow third party web sites granular access to your application data.  For example, a public facing oauth server is required when developing apps for Google Home or Amazon Alexa that require user identification and account linking.
+The delegated authentication provided by the oauth2 server is useful to allow third party web sites granular access to your application data.  
+For example, a public facing oauth server is required when developing apps for Google Home or Amazon Alexa that require user identification and account linking.
 
 It also integrates passport.js to enable login using Google, Twitter, Facebook and Github. Passport includes solutions for many more authentication providers.
 
-In the box
+Features
 - React components to implement a login and registration system.
 - Express routes to support login, registration, password recovery, oauth authorization and oauth login from various providers using passport.js
 - Express routes to implement an oauth2 server using the oauth library and the mongodb
 - Example web application.
 
-Features
 - Configurable CSRF checks for appropriates routes while leaving oauth routes and passport callback routes exposed.
 - JWT tokens to allow query free distributed authentication
 - Helper functions to create an axios client that supports csrf and authentication without extra effort.
@@ -27,7 +29,7 @@ Features
 
 ## Quickstart
 
-The demo assumes there is a mongodb server running on localhost. See example/config.js for details.
+The demo assumes there is a mongodb server running on localhost. See .env file and src/config.js for details.
 
 To see the suite in action
 
@@ -35,21 +37,17 @@ To see the suite in action
 git clone https://github.com/syntithenai/react-express-oauth-login-system.git
 ```
 
-- Copy example/config.sample.js to example/config.js and edit to update any configuration settings including email delivery and external api keys.
-- Edit example/src/App.js and update the properties to disable any unused external authentication buttons.
+- Copy .env-sample to .env and edit to update any configuration settings including email delivery and external api keys.
+- Edit src/www/App.js and update the properties to disable any unused external authentication buttons.
 
 
 ```
 cd react-express-oauth-login-system/
 npm i
-cd example
-cp config.js.sample config.js
-# nano config.js
-npm i
 npm start
 ```
 
-Open https://localhost/ 
+Open https://localhost:3000/ 
 
 
 ## Integration into your application
@@ -57,25 +55,32 @@ Open https://localhost/
 0. Install the package from npm
 
 ```
-npm i react-express-oauth-login-system
+npm i express-oauth-login-system-routes
+npm i react-express-oauth-login-system-components
 ```
 
 1. Add the provided routes to your express server.
-	- /index.js provides an example of integrating the login system routes.
+	- /src/index.js provides an example of integrating the login system routes.
 	
 ```
-var loginSystem = require('react-express-oauth-login-system/routes/loginsystem.js')
-// async connect to db THEN add routes, start server
-loginSystem(config).then(function({router, authenticate,csrf}) {
-
+let config = require('./config');
+var loginSystem = require('express-oauth-login-system-server')
+loginSystem(config).then(function(login) {
+    const loginRouter = login.router
+    const authenticate = login.authenticate
+    const csrf = login.csrf
+    
     const app = express();
+    app.use('/',function(req,res,next) {
+        csrf.setToken(req,res,next)
+    });
     app.use(bodyParser.json());
     app.use(cookieParser());
     // session required for twitter login
     app.use(session({ secret: config.sessionSalt ? config.sessionSalt : 'board GOAT boring do boat'}));
     app.use('/api/login',loginRouter);
     // endpoint requiring authentication
-    app.use('/protected',authenticate,loginRouter);
+    app.use('/protected',authenticate,otherRoutesNeedingProtection);
     
      app.listen(port, () => {
       console.log(`Login system example listening at http://localhost:${port}`)
@@ -84,25 +89,47 @@ loginSystem(config).then(function({router, authenticate,csrf}) {
     
 ```
 
-2. Use the LoginSystem component on the root client route (/)  in your React application
-	- React Router is required, the login system assumes that it exists inside a <Router> element as a <PropsRoute>
-	- /src/App.js provides an example of integrating the login UI components into your React app.
+2. Use the LoginSystemContext at the root of your app to provide context to store the current logged in user and make it available as props down through your component tree.
+
+ Use LoginSystem component on the login react dom route (eg /login)  in your React application.
+ 
+ Note that the LoginSystemContext exposes the current user and a bunch of helper functions to it's child renderer.
 
 ```
-import LoginSystem from 'react-express-oauth-login-system'
+import {LoginSystem,LoginSystemContext, getAxiosClient,getMediaQueryString,getCsrfQueryString} from 'react-express-oauth-login-system-components'
 
-
-<Router><div style={{width:'70%'}}>
-   <Route  exact={true} path='/' component={RedirectToLogin} />
-   <PropsRoute path='/' component={LoginSystem}  
-   // update for login api location, use package.json proxy config to map other host/port to local link
-    authServer={'/api/login'} 
-    // also need external link to auth server (combind authServerHostname + authServer) for google, github, .. login buttons
-    authServerHostname={'http://localhost:5000'} 
-    loginButtons={['google','twitter','facebook','github','amazon']}
-    setUser={this.setUser} onLogin={this.onLogin} onLogout={this.onLogout} startWaiting={this.startWaiting} stopWaiting={this.stopWaiting} 
-   />
-</div></Router>
+<LoginSystemContext  
+        authServer={process.env.REACT_APP_authServer} 
+         authServerHostname={process.env.REACT_APP_authServerHostname} 
+    >
+    {(user,setUser,getAxiosClient,getMediaQueryString,getCsrfQueryString, isLoggedIn, loadUser, useRefreshToken, logout) => {
+      return  <Router>
+                <div style={{width:'70%'}}>
+                    <img style={{height: '30px'}} src={csrfMediaImage} alt='csrf' />
+                    <img style={{height: '30px'}}  src={protectedMediaImage} alt='Not logged in' />
+                    {!isLoggedIn() && <a href="/login/login"><button className='btn btn-primary'>Login</button></a>}
+                    {isLoggedIn() && <a href="/login/profile"><button className='btn btn-primary'>Profile</button></a>}
+                    <hr style={{backgroundColor:'white'}}/>
+                    <Route path='/login'  render={
+                    (props) => <LoginSystem  
+                       match={props.match}
+                       location={props.location}
+                       history={props.history}
+                       authServer={process.env.REACT_APP_authServer} 
+                        // also need external link to auth server (combind authServerHostname + authServer) for google, github, .. login buttons
+                        authServerHostname={process.env.REACT_APP_authServerHostname} 
+                        // update for login api location, use package.json proxy config to map other host/port to local link
+                       loginButtons={process.env.REACT_APP_loginButtons?process.env.REACT_APP_loginButtons.split(","):[]}
+                        // optional callbacks
+                        logoutRedirect={'/'}
+                       user={user} setUser={setUser} isLoggedIn={isLoggedIn} logout={logout} saveUser={saveUser} startWaiting={that.startWaiting} stopWaiting={that.stopWaiting} 
+                     />}
+                     />
+                </div>
+           </Router>
+        }
+    }
+</LoginSystemContext>
 
 ```
 
@@ -130,16 +157,11 @@ All requests to your secured API endpoints must include an Authorization header 
 The module exports a number of helper functions to React including getAxiosClient that adds authentications and csrf headers to ajax requests automatically.
 ```
 import {getCookie,getAxiosClient} from './helpers'  
-this.axiosClient = getAxiosClient();
+this.axiosClient = getAxiosClient(bearerToken);  
 that.axiosClient( {
-  url: that.props.authServer+'/signin',
+  url: that.props.authServer+'/protectedurl',
   method: 'post',
-  data: {
-    username: user,
-    password: pass
-  }
 })
-.then(this.checkStatus)
 .then(function(res) {
   return res.data;  
 })

@@ -89,7 +89,7 @@ loginSystem(config).then(function(login) {
         app.use('/login/*', express.static(path.join(staticPath.join('/'),  'build' )))
         app.get('/*',cors(), (req, res) => {
             console.log(["TEMPL",path.join(staticPath.join('/'),  'build', "index.html"),__dirname])
-          res.sendFile(path.join(staticPath.join('/'),  'build', "index.html"));
+            res.sendFile(path.join(staticPath.join('/'),  'build', "index.html"));
         })
     } else {
         console.log('PROXY DEV')
@@ -107,9 +107,19 @@ loginSystem(config).then(function(login) {
     });
     var options = {}
     let port=config.authServerPort ? config.authServerPort  : '4000'
-    app.listen(port, () => {
-      console.log(`Login system example listening at http://localhost:${port}`)
-    })
+    
+    if (config.sslKeyFile && config.sslKeyFile.trim() && config.sslCertFile && config.sslCertFile.trim()) {
+        https.createServer({
+            key: fs.readFileSync(config.sslKeyFile),
+            cert: fs.readFileSync(config.sslCertFile),
+        }, app).listen(port, () => {
+          console.log(`Login system example listening securely at http://localhost:${port}`)
+        })
+    } else {
+        app.listen(port, () => {
+          console.log(`Login system example listening at http://localhost:${port}`)
+        })
+    }
 })
 
 

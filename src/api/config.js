@@ -1,7 +1,25 @@
 require('dotenv').config()
+const fs = require('fs')
+
+
+var sslKeyFile = null
+var sslCertFile = null
+try {
+    if(process.env.sslKeyFile && process.env.sslKeyFile.trim() && fs.existsSync(process.env.sslKeyFile)) {
+        sslKeyFile = process.env.sslKeyFile
+    }
+    if(process.env.sslCertFile && process.env.sslCertFile.trim() && fs.existsSync(process.env.sslCertFile)) {
+        sslCertFile = process.env.sslCertFile
+    }  
+} catch (err) {
+    console.error(err);
+}
 
 // map environment variables into configuration for login system
 module.exports = {
+   sslKeyFile: sslKeyFile ,
+   sslCertFile: sslCertFile,
+   sslPassPhrase: process.env.sslPassPhrase && process.env.sslPassPhrase.trim() ? process.env.sslPassPhrase : '',
    sessionSalt: process.env.sessionSalt ? process.env.sessionSalt : 'this is a new session salt value',
    // md5 hash passwords before storing in database
    encryptedPasswords: process.env.encryptedPasswords && process.env.encryptedPasswords.toUpperCase() === "TRUE" ? true : false ,

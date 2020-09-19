@@ -10,7 +10,8 @@ const fs = require('fs'),
 var flash = require('connect-flash');
 var md5 = require('md5');
 var cors = require('cors')
-
+ var proxy = require('express-http-proxy');
+       
 var loginSystem = require('express-oauth-login-system-server')
 loginSystem(config).then(function(login) {
     const loginRouter = login.router
@@ -31,6 +32,8 @@ loginSystem(config).then(function(login) {
             res.send({error:'media check failed'})
         }
     }
+
+    router.use('/api/login',loginRouter);
 
     // use media authentication with cookie and req parameter because media element cannot send auth in header.
     router.use('/api/protectedimage',cors(),csrf.checkToken, checkMedia,function (req,res) {
@@ -54,8 +57,7 @@ loginSystem(config).then(function(login) {
         console.log('API')
         res.send({error:'Invalid request'})
     });
-
-
+    
     // SSL
     // allow self generated certs
     //process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -73,17 +75,31 @@ loginSystem(config).then(function(login) {
     app.use(cors())
     // session required for twitter login
     app.use(session({ secret: config.sessionSalt ? config.sessionSalt : 'board GOAT boring do boat'}));
-    app.use('/api/login',loginRouter);
     app.use(router);
+
+    var staticPath = __dirname.split("/")
+    staticPath.pop()
+    staticPath.pop()
+
+    // host web pages on same domain as api
+    if (fs.existsSync(path.join(staticPath.join('/'),  'build', "index.html"))) {
+        console.log('SERVE BUILD')
+        // serve build folder
+        app.use('/static', express.static(path.join(staticPath.join('/'),  'build', 'static')))
+        app.use('/login/*', express.static(path.join(staticPath.join('/'),  'build' )))
+        app.get('/*',cors(), (req, res) => {
+            console.log(["TEMPL",path.join(staticPath.join('/'),  'build', "index.html"),__dirname])
+          res.sendFile(path.join(staticPath.join('/'),  'build', "index.html"));
+        })
+    } else {
+        console.log('PROXY DEV')
+        //// proxy to 3000 in dev mode
+        app.use('/', proxy('http://localhost:3000'));
+    }
     router.use('/',function(req,res,next) {
         console.log(['URL',req.url]); //,req.cookies,req.headers
         next()
     });
-
-    router.get('/', (req, res) => {
-      res.send('Hello World!')
-    })
-
 
     app.use(function (err, req, res, next) {
         console.log('ERR');

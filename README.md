@@ -102,7 +102,7 @@ import {LoginSystem,LoginSystemContext, getAxiosClient,getMediaQueryString,getCs
         authServer={process.env.REACT_APP_authServer} 
          authServerHostname={process.env.REACT_APP_authServerHostname} 
     >
-    {(user,setUser,getAxiosClient,getMediaQueryString,getCsrfQueryString, isLoggedIn, loadUser, useRefreshToken, logout) => {
+    {(user,setUser,getAxiosClient,getMediaQueryString,getCsrfQueryString, isLoggedIn, loadUser, useRefreshToken, logout, authServer, authServerHostname) => {
       return  <Router>
                 <div style={{width:'70%'}}>
                     <img style={{height: '30px'}} src={csrfMediaImage} alt='csrf' />
@@ -115,9 +115,9 @@ import {LoginSystem,LoginSystemContext, getAxiosClient,getMediaQueryString,getCs
                        match={props.match}
                        location={props.location}
                        history={props.history}
-                       authServer={process.env.REACT_APP_authServer} 
+                       authServer={authServer} 
                         // also need external link to auth server (combind authServerHostname + authServer) for google, github, .. login buttons
-                        authServerHostname={process.env.REACT_APP_authServerHostname} 
+                        authServerHostname={authServerHostname} 
                         // update for login api location, use package.json proxy config to map other host/port to local link
                        loginButtons={process.env.REACT_APP_loginButtons?process.env.REACT_APP_loginButtons.split(","):[]}
                         // optional callbacks

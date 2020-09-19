@@ -1,7 +1,7 @@
 {
   "name": "react-express-oauth-login-system",
-  "version": "1.1.0",
-    "browser": "dist/index.js",
+  "version": "1.1.1",
+  "browser": "dist/index.js",
   "main": "src/routes/index.js",
   "dependencies": {
     "body-parser": "^1.19.0",
@@ -15,6 +15,8 @@
     "deploy-node-app": "^1.5.4",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "express-http-proxy": "^1.6.2",
+    "express-oauth-login-system-server": "^1.0.3",
     "express-session": "^1.17.1",
     "jquery": "^3.5.1",
     "lodash": "^4.17.20",
@@ -27,8 +29,7 @@
     "popper.js": "^1.16.1",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
-    "react-express-oauth-login-system-components": "",
-    "express-oauth-login-system-server": "",
+    "react-express-oauth-login-system-components": "^1.0.3",
     "react-icons": "^3.11.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "^3.4.3",

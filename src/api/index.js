@@ -87,7 +87,25 @@ loginSystem(config).then(function(login) {
         // serve build folder
         app.use('/static', express.static(path.join(staticPath.join('/'),  'build', 'static')))
         app.use('/login/*', express.static(path.join(staticPath.join('/'),  'build' )))
-        app.get('/*',cors(), (req, res) => {
+        
+        app.get('/*', express.static(path.join(staticPath.join('/'),  'build' )))
+        app.get('/',cors(), (req, res) => {
+            console.log(["TEMPL",path.join(staticPath.join('/'),  'build', "index.html"),__dirname])
+            res.sendFile(path.join(staticPath.join('/'),  'build', "index.html"));
+        })
+        app.get('/login',cors(), (req, res) => {
+            console.log(["TEMPL",path.join(staticPath.join('/'),  'build', "index.html"),__dirname])
+            res.sendFile(path.join(staticPath.join('/'),  'build', "index.html"));
+        })
+         app.get('/profile',cors(), (req, res) => {
+            console.log(["TEMPL",path.join(staticPath.join('/'),  'build', "index.html"),__dirname])
+            res.sendFile(path.join(staticPath.join('/'),  'build', "index.html"));
+        })
+         app.get('/logout',cors(), (req, res) => {
+            console.log(["TEMPL",path.join(staticPath.join('/'),  'build', "index.html"),__dirname])
+            res.sendFile(path.join(staticPath.join('/'),  'build', "index.html"));
+        })
+        app.get('/blank',cors(), (req, res) => {
             console.log(["TEMPL",path.join(staticPath.join('/'),  'build', "index.html"),__dirname])
             res.sendFile(path.join(staticPath.join('/'),  'build', "index.html"));
         })

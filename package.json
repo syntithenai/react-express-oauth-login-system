@@ -1,8 +1,8 @@
 {
   "name": "react-express-oauth-login-system",
-  "version": "1.1.2",
+  "version": "1.1.5",
   "browser": "dist/index.js",
-  "main": "src/routes/index.js",
+  "main": "src/api/index.js",
   "dependencies": {
     "body-parser": "^1.19.0",
     "bootstrap": "^4.5.2",
@@ -60,7 +60,9 @@
     "extends": "react-app"
   },
   "files": [
-    "src/routes/index.js"
+    "src/routes/index.js",
+    "build",
+    "src"
   ],
   "browserslist": [
     ">0.2%",

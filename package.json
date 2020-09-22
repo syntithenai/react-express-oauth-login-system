@@ -29,7 +29,7 @@
     "popper.js": "^1.16.1",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
-    "react-express-oauth-login-system-components": "^1.0.3",
+    "react-express-oauth-login-system-components": "^1.0.5",
     "react-icons": "^3.11.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "^3.4.3",

@@ -54,7 +54,7 @@ loginSystem(config).then(function(login) {
     });
 
     router.use('/api',function (req,res) {
-        console.log('API')
+        //console.log('API')
         res.send({error:'Invalid request'})
     });
     
@@ -90,23 +90,23 @@ loginSystem(config).then(function(login) {
         
         app.get('/*', express.static(path.join(staticPath.join('/'),  'build' )))
         app.get('/',cors(), (req, res) => {
-            console.log(["TEMPL",path.join(staticPath.join('/'),  'build', "index.html"),__dirname])
+            //console.log(["TEMPL",path.join(staticPath.join('/'),  'build', "index.html"),__dirname])
             res.sendFile(path.join(staticPath.join('/'),  'build', "index.html"));
         })
         app.get('/login',cors(), (req, res) => {
-            console.log(["TEMPL",path.join(staticPath.join('/'),  'build', "index.html"),__dirname])
+            //console.log(["TEMPL",path.join(staticPath.join('/'),  'build', "index.html"),__dirname])
             res.sendFile(path.join(staticPath.join('/'),  'build', "index.html"));
         })
          app.get('/profile',cors(), (req, res) => {
-            console.log(["TEMPL",path.join(staticPath.join('/'),  'build', "index.html"),__dirname])
+            //console.log(["TEMPL",path.join(staticPath.join('/'),  'build', "index.html"),__dirname])
             res.sendFile(path.join(staticPath.join('/'),  'build', "index.html"));
         })
          app.get('/logout',cors(), (req, res) => {
-            console.log(["TEMPL",path.join(staticPath.join('/'),  'build', "index.html"),__dirname])
+            //console.log(["TEMPL",path.join(staticPath.join('/'),  'build', "index.html"),__dirname])
             res.sendFile(path.join(staticPath.join('/'),  'build', "index.html"));
         })
         app.get('/blank',cors(), (req, res) => {
-            console.log(["TEMPL",path.join(staticPath.join('/'),  'build', "index.html"),__dirname])
+            //console.log(["TEMPL",path.join(staticPath.join('/'),  'build', "index.html"),__dirname])
             res.sendFile(path.join(staticPath.join('/'),  'build', "index.html"));
         })
     } else {

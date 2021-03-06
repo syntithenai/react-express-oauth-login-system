@@ -10,10 +10,28 @@ const fs = require('fs'),
 var flash = require('connect-flash');
 var md5 = require('md5');
 var cors = require('cors')
- var proxy = require('express-http-proxy');
+var proxy = require('express-http-proxy');
+const mongoose = require('mongoose');
+      
+////console.log(config)       
+//console.log('Mongoose connect '+config.databaseConnection) //);
+//mongoose.connect(config.databaseConnection, {useNewUrlParser: true}) //+config.database
+
+//mongoose.connection.on('connected', () => {
+  //process.nextTick(() => {
+    //console.log('Mongoose connected');
+  //});
+//});
+//mongoose.connection.on('error', (e) => {
+  //process.nextTick(() => {
+    //console.log(['Mongoose ERR',e]);
+  //});
+//});    
        
-var loginSystem = require('express-oauth-login-system-server')
-loginSystem(config).then(function(login) {
+	var loginSystem = require('express-oauth-login-system-server')
+	//console.log(['SYS',loginSystem])
+	var login = loginSystem(config)
+	//console.log(['call',login])
     const loginRouter = login.router
     const authenticate = login.authenticate
     const csrf = login.csrf
@@ -21,7 +39,10 @@ loginSystem(config).then(function(login) {
     router.use('/',function(req,res,next) {
         csrf.setToken(req,res,next)
     });
-    
+
+
+
+ 
     
     function checkMedia(req,res,next) {
         let cookie = req.cookies['media_token'] ? req.cookies['media_token']  : '';
@@ -34,6 +55,12 @@ loginSystem(config).then(function(login) {
     }
 
     router.use('/api/login',loginRouter);
+    //(req,res) => {
+        //var list = ["item1", "item2", "item3"];
+        //res.send([{items:list}]);
+    //});
+    
+    //
 
     // use media authentication with cookie and req parameter because media element cannot send auth in header.
     router.use('/api/protectedimage',cors(),csrf.checkToken, checkMedia,function (req,res) {
@@ -105,6 +132,10 @@ loginSystem(config).then(function(login) {
             //console.log(["TEMPL",path.join(staticPath.join('/'),  'build', "index.html"),__dirname])
             res.sendFile(path.join(staticPath.join('/'),  'build', "index.html"));
         })
+         app.get('/privacy',cors(), (req, res) => {
+            //console.log(["TEMPL",path.join(staticPath.join('/'),  'build', "index.html"),__dirname])
+            res.sendFile(path.join(staticPath.join('/'),  'build', "index.html"));
+        })
         app.get('/blank',cors(), (req, res) => {
             //console.log(["TEMPL",path.join(staticPath.join('/'),  'build', "index.html"),__dirname])
             res.sendFile(path.join(staticPath.join('/'),  'build', "index.html"));
@@ -125,19 +156,19 @@ loginSystem(config).then(function(login) {
     });
     var options = {}
     let port=config.authServerPort ? config.authServerPort  : '4000'
-    
+    console.log(['start server ',port,config])
     if (config.sslKeyFile && config.sslKeyFile.trim() && config.sslCertFile && config.sslCertFile.trim()) {
         https.createServer({
             key: fs.readFileSync(config.sslKeyFile),
             cert: fs.readFileSync(config.sslCertFile),
         }, app).listen(port, () => {
-          console.log(`Login system example listening securely at http://localhost:${port}`)
+          console.log(`Login system example listening securely at https://localhost:${port}`)
         })
     } else {
         app.listen(port, () => {
           console.log(`Login system example listening at http://localhost:${port}`)
         })
     }
-})
+
 
 

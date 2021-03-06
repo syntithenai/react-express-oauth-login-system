@@ -22,3 +22,8 @@
 # used by deploy-node-app
 tmp/
 secrets/
+sendgrid.env
+
+cert.pem
+
+key.pem

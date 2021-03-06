@@ -38,7 +38,6 @@ git clone https://github.com/syntithenai/react-express-oauth-login-system.git
 ```
 
 - Copy .env-sample to .env and edit to update any configuration settings including email delivery and external api keys.
-- Edit src/www/App.js and update the properties to disable any unused external authentication buttons.
 
 
 ```
@@ -63,9 +62,9 @@ npm i react-express-oauth-login-system-components
 	- /src/index.js provides an example of integrating the login system routes.
 	
 ```
-let config = require('./config');
-var loginSystem = require('express-oauth-login-system-server')
-loginSystem(config).then(function(login) {
+    let config = require('./config');
+    var loginSystem = require('express-oauth-login-system-server')
+    var login = loginSystem(config)
     const loginRouter = login.router
     const authenticate = login.authenticate
     const csrf = login.csrf
@@ -85,7 +84,7 @@ loginSystem(config).then(function(login) {
      app.listen(port, () => {
       console.log(`Login system example listening at http://localhost:${port}`)
     })
-})
+
     
 ```
 

@@ -1,5 +1,7 @@
 # React Login System
 
+!! For the latest version see https://github.com/syntithenai/lambda-oauth-login-system
+
 This package provides an easy way to add user registration and login to a React web application. 
 
 This package is an example application, that shows how to use the two related packages
